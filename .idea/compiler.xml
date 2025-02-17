@@ -12,7 +12,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="Foyer" options="-parameters" />
+      <module name="Foyer" options="" />
     </option>
   </component>
 </project>
