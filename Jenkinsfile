@@ -3,11 +3,9 @@ pipeline {
     agent any
        environment {
             DOCKER_IMAGE = 'guesmizaineb/alpine:latest'
+             GIT_CREDENTIALS_ID = 'ZAINEB' // Ensure 'ZAINEB' is correctly stored in Jenkins Credentials
         }
 
-    environment {
-        GIT_CREDENTIALS_ID = 'ZAINEB' // Ensure 'ZAINEB' is correctly stored in Jenkins Credentials
-    }
 
     triggers {
         pollSCM('H/5 * * * *') // Polls SCM every 5 minutes (Reduce load)
