@@ -1,6 +1,9 @@
 
 pipeline {
     agent any
+       environment {
+            DOCKER_IMAGE = 'guesmizaineb/alpine:latest'
+        }
 
     environment {
         GIT_CREDENTIALS_ID = 'ZAINEB' // Ensure 'ZAINEB' is correctly stored in Jenkins Credentials
@@ -14,8 +17,8 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 script {
-                    git credentialsId: "${GIT_CREDENTIALS_ID}", 
-                        url: 'https://github.com/Miriama130/devops.git', 
+                    git credentialsId: "${GIT_CREDENTIALS_ID}",
+                        url: 'https://github.com/Miriama130/devops.git',
                         branch: 'zaineb'
                 }
             }
@@ -26,14 +29,49 @@ pipeline {
                 sh 'echo "helloo!"'
             }
         }
-    }
 
-    post {
-        success {
-            echo "✅ Build completed successfully!"
-        }
-        failure {
-            echo "❌ Build failed! Check logs."
-        }
+         stage('Build Project') {
+                    steps {
+                        sh 'mvn package -DskipTests'
+                    }
+                }
+
+
+         stage('Build Docker Image') {
+                        steps {
+                            script {
+                                sh "docker build -t $DOCKER_IMAGE ."
+                            }
+                        }
+                    }
+
+
+
+
+
+
+            stage('Push Docker Image') {
+                       steps {
+                           script {
+                               withCredentials([usernamePassword(credentialsId: 'zainebDocker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                                   sh "docker login -u $DOCKER_USER -p $DOCKER_PASS"
+                                   sh "docker push $DOCKER_IMAGE"
+                               }
+                           }
+                       }
+                   }
+
+
+                        stage('Pull Docker Image') {
+                               steps {
+                                   script {
+                                       sh "docker pull $DOCKER_IMAGE"
+                                   }
+                               }
+                        }
+
+
+
+
     }
-}
+    }
