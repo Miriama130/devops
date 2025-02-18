@@ -2,41 +2,51 @@ pipeline {
     agent any
 
     environment {
-        GIT_CREDENTIALS_ID = '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' // Replace with your Jenkins credentials ID
-    }
-
-    triggers {
-        pollSCM('* * * * *') // Polls SCM every minute (replace with webhook for efficiency)
+        DOCKER_IMAGE = 'miriama13/foyer-app'
+        DOCKER_TAG = 'v1'
+        DOCKER_USERNAME = 'miriama13'
+        DOCKER_PASSWORD = 'mimi52150980'
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Checkout SCM') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Clean and Build') {
             steps {
                 script {
-                    git credentialsId: 'github-token', url: 'https://github.com/Miriama130/devops.git', branch: 'Mariemtl'
+                    sh 'mvn clean install' // Clean and build the project
                 }
             }
         }
 
-        stage('Clean Project') {
+        stage('Push to Docker Hub') {
             steps {
-                sh 'mvn clean'
+                script {
+                    sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+                    sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    sh "docker logout"
+                }
             }
         }
 
-        stage('Build Deliverable') {
+        stage('Archive artifacts') {
             steps {
-                sh 'mvn package -DskipTests' // Creates JAR/WAR file in target/ without running tests
+                echo 'Archiving the JAR file'
+                archiveArtifacts artifacts: '*/target/.jar', allowEmptyArchive: true
             }
         }
     }
 
     post {
         success {
-            echo "✅ Build completed successfully! Deliverable is in the 'target/' directory."
+            echo 'Build and clean completed successfully!'
         }
         failure {
-            echo "❌ Build failed! Check logs."
+            echo 'There was an error in the build process.'
         }
     }
 }
