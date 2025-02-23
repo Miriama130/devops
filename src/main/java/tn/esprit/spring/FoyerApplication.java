@@ -1,4 +1,4 @@
-package tn.esprit.spring;
+package tn.esprit.spring.FoyerApplication;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,7 +8,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class FoyerApplication {
 
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         SpringApplication.run(FoyerApplication.class, args);
     }
 
