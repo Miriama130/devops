@@ -8,6 +8,27 @@ pipeline {
         DOCKER_PASSWORD = 'mimi52150980'
     }
 
+   stage('Nettoyage du projet') {
+            steps {
+                echo '🧹 Nettoyage des fichiers temporaires...'
+                sh 'mvn clean'
+            }
+        }
+
+        stage('Compilation & Tests') {
+            steps {
+                echo '🔬 Compilation et exécution des tests...'
+                sh 'mvn test'
+            }
+        }
+
+        stage('Construction du livrable') {
+            steps {
+                echo '🔨 Construction du livrable sans exécuter les tests...'
+                sh 'mvn package -DskipTests'
+            }
+        }
+    
     stages {
         stage('Checkout SCM') {
             steps {
