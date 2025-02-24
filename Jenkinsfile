@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
+        DOCKER_REGISTRY = 'guesmizaineb'
         DOCKER_IMAGE = 'guesmizaineb-dockerhub/devops-app:v1'
-        DOCKER_REGISTRY = 'https://index.docker.io/v1/' // URL du registre Docker Hub
         GIT_CREDENTIALS_ID = 'ZAINEB' // Assurez-vous que 'ZAINEB' est correctement stocké dans Jenkins Credentials
     }
 
@@ -31,7 +31,7 @@ pipeline {
 
         stage('Build Maven') {
             steps {
-                sh 'mvn clean package -DskipTests' // Exécute la construction Maven en ignorant les tests
+                sh 'mvn clean package ' //-DskipTests Exécute la construction Maven en ignorant les tests
             }
         }
 
