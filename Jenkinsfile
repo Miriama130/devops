@@ -2,9 +2,10 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = 'guesmizaineb'
-        DOCKER_IMAGE = 'guesmizaineb-dockerhub/devops-app:v1'
-        GIT_CREDENTIALS_ID = 'ZAINEB' // Assurez-vous que 'ZAINEB' est correctement stocké dans Jenkins Credentials
+        DOCKER_REGISTRY = 'guesmizaineb'  // Remplacer par ton nom Docker Hub
+               IMAGE_NAME = 'devops-app'
+               IMAGE_TAG = 'v1'
+               GIT_CREDENTIALS_ID = 'ZAINEB' //  DAssurez-vous que 'ZAINEB' est correctement stocké dans Jenkins Credentials
     }
 
     triggers {
