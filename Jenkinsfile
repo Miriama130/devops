@@ -17,6 +17,14 @@ pipeline {
                 }
             }
         }
+
+        stage('Tests Unitaires') {
+            steps {
+                script {
+                    sh 'mvn test'  // Run unit tests
+                }
+            }
+        }
     }
 
     post {
