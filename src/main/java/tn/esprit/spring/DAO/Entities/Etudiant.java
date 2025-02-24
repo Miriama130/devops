@@ -23,11 +23,17 @@ public class Etudiant implements Serializable {
     long idEtudiant;
     String nomEt;
     String prenomEt;
-    long cin;
+    Long cin;
     String ecole;
     LocalDate dateNaissance;
     @ManyToMany(mappedBy = "etudiants")
     List<Reservation> reservations= new ArrayList<>();
 
-
+    public Etudiant(String nomEt, String prenomEt, Long cin, String ecole, LocalDate dateNaissance) {
+        this.nomEt = nomEt;
+        this.prenomEt = prenomEt;
+        this.cin = cin;
+        this.ecole = ecole;
+        this.dateNaissance = dateNaissance;
+    }
 }
