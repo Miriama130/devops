@@ -1,93 +1,95 @@
-import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import tn.esprit.spring.DAO.Entities.Bloc;
+import tn.esprit.spring.DAO.Entities.Chambre;
+import tn.esprit.spring.DAO.Entities.Foyer;
+import tn.esprit.spring.DAO.Repositories.BlocRepository;
+import tn.esprit.spring.DAO.Repositories.ChambreRepository;
+import tn.esprit.spring.DAO.Repositories.FoyerRepository;
 import tn.esprit.spring.Services.Bloc.BlocService;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-//@ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@SpringBootTest
-public class BlocServiceTest {
+class BlocServiceTest {
 
-    @Autowired
+    @Mock
+    private BlocRepository blocRepository;
+
+    @Mock
+    private ChambreRepository chambreRepository;
+
+    @Mock
+    private FoyerRepository foyerRepository;
+
+    @InjectMocks
     private BlocService blocService;
 
-    @Test
-    public Bloc testaddOrUpdate2() { //Cascade
-        Bloc bloc = new Bloc();
-        // Set up the Bloc object with necessary data
-        Bloc result = blocService.addOrUpdate2(bloc);
-        assertNotNull(result);
-        return result;
+    private Bloc bloc;
+    private Chambre chambre1, chambre2;
+
+    @BeforeEach
+    void setUp() {
+        bloc = new Bloc();
+        bloc.setNomBloc("Bloc A");
+        chambre1 = new Chambre();
+        chambre1.setNumeroChambre(101L);
+        chambre2 = new Chambre();
+        chambre2.setNumeroChambre(102L);
+        bloc.setChambres(Arrays.asList(chambre1, chambre2));
     }
 
     @Test
-    public Bloc testaddOrUpdate() {
-        Bloc bloc = new Bloc();
-        // Set up the Bloc object with necessary data
-        Bloc result = blocService.addOrUpdate(bloc);
-        assertNotNull(result);
-        return result;
+    void testAddOrUpdate() {
+        when(blocRepository.save(any(Bloc.class))).thenReturn(bloc);
+        Bloc savedBloc = blocService.addOrUpdate(bloc);
+        assertNotNull(savedBloc);
+        verify(blocRepository, times(1)).save(bloc);
+        verify(chambreRepository, times(2)).save(any(Chambre.class));
     }
 
     @Test
-    public List<Bloc> testfindAll() {
-        List<Bloc> result = blocService.findAll();
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        return result;
+    void testFindAll() {
+        when(blocRepository.findAll()).thenReturn(Arrays.asList(bloc));
+        List<Bloc> blocs = blocService.findAll();
+        assertFalse(blocs.isEmpty());
+        assertEquals(1, blocs.size());
     }
 
     @Test
-    public Bloc testfindById() {
-        long id = 1L; // Example ID
-        Bloc result = blocService.findById(id);
-        assertNotNull(result);
-        return result;
+    void testFindById() {
+        when(blocRepository.findById(anyLong())).thenReturn(Optional.of(bloc));
+        Bloc foundBloc = blocService.findById(1L);
+        assertNotNull(foundBloc);
     }
 
     @Test
-    public void testdeleteById() {
-        long id = 1L; // Example ID
-        blocService.deleteById(id);
-        // Verify deletion if necessary
+    void testDeleteById() {
+        doNothing().when(blocRepository).deleteById(anyLong());
+        blocService.deleteById(1L);
+        verify(blocRepository, times(1)).deleteById(1L);
     }
 
     @Test
-    public void testdelete() {
-        Bloc bloc = new Bloc();
-        // Set up the Bloc object with necessary data
-        blocService.delete(bloc);
-        // Verify deletion if necessary
-    }
+    void testAffecterBlocAFoyer() {
+        Foyer foyer = new Foyer();
+        foyer.setNomFoyer("Foyer 1");
 
-    @Test
-    public Bloc testaffecterChambresABloc() {
-        List<Long> numChambre = List.of(1L, 2L); // Example chambre numbers
-        String nomBloc = "ExampleBloc";
-        Bloc result = blocService.affecterChambresABloc(numChambre, nomBloc);
-        assertNotNull(result);
-        return result;
-    }
+        when(blocRepository.findByNomBloc(anyString())).thenReturn(bloc);
+        when(foyerRepository.findByNomFoyer(anyString())).thenReturn(foyer);
+        when(blocRepository.save(any(Bloc.class))).thenReturn(bloc);
 
-    @Test
-    public Bloc testaffecterBlocAFoyer() {
-        String nomBloc = "ExampleBloc";
-        String nomFoyer = "ExampleFoyer";
-        Bloc result = blocService.affecterBlocAFoyer(nomBloc, nomFoyer);
-        assertNotNull(result);
-        return result;
+        Bloc updatedBloc = blocService.affecterBlocAFoyer("Bloc A", "Foyer 1");
+        assertNotNull(updatedBloc.getFoyer());
+        verify(blocRepository, times(1)).save(bloc);
     }
 }
