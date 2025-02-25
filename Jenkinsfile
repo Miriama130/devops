@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         DOCKER_REGISTRY = 'guesmizaineb'  // Remplacer par ton nom Docker Hub
-               IMAGE_NAME = 'devops-app'
-               IMAGE_TAG = 'v1'
+               IMAGE_NAME = 'alpine'
+               IMAGE_TAG = 'latest'
                GIT_CREDENTIALS_ID = 'ZAINEB' //  DAssurez-vous que 'ZAINEB' est correctement stocké dans Jenkins Credentials
     }
 
@@ -78,4 +78,12 @@ pipeline {
             echo 'L\'exécution du pipeline a échoué.'
         }
     }
+
+    stage('Run Tests with Spring Profile') {
+                steps {
+                    sh 'mvn test -Dspring.profiles.active=test'
+                }
+            }
+        }
+
 }
