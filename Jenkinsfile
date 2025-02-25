@@ -25,6 +25,14 @@ pipeline {
                 }
             }
         }
+
+        stage('MVN SONARQUBE') {
+            steps {
+                script {
+                    mvn sonar:sonar
+                }
+            }
+        }
     }
 
     post {
