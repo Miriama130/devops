@@ -18,7 +18,7 @@ pipeline {
             steps {
                 script {
                     echo '📥 Cloning repository from GitHub...'
-                    withCredentials([string(credentialsId: 'ONS', variable: 'GITHUB_TOKEN')]) {
+                    withCredentials([string(credentialsId: 'Onsgit', variable: 'GITHUB_TOKEN')]) {
                         retry(3) { // Retry up to 3 times in case of failure
                             git branch: "${BRANCH}",
                                 url: "https://${GITHUB_TOKEN}@github.com/Miriama130/devops.git"
