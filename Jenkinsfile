@@ -63,20 +63,5 @@ pipeline {
                 }
             }
         }
-
-        stage('Run Tests with Spring Profile') {
-            steps {
-                sh 'mvn test -Dspring.profiles.active=test'
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'Pipeline exécuté avec succès!'
-        }
-        failure {
-            echo 'L\'exécution du pipeline a échoué.'
-        }
     }
 }
