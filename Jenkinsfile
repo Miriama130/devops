@@ -2,94 +2,63 @@ pipeline {
     agent any
 
     environment {
-        REPO_URL = "https://github.com/Miriama130/devops.git"
-        BRANCH = "ons"
-        DOCKER_IMAGE = "onsdachraoui/foyer-app"
-        IMAGE_TAG = "latest"
-    }
-
-    options {
-        timeout(time: 30, unit: 'MINUTES') // Set a timeout for the pipeline
-        timestamps() // Add timestamps to logs
+        DOCKER_IMAGE = "onsdachraoui/foyer-app:latest"
     }
 
     stages {
-        stage('Checkout GIT') {
+        stage('Clone Repository') {
             steps {
                 script {
-                    echo '📥 Cloning repository from GitHub...'
-                    withCredentials([string(credentialsId: 'Onsgit', variable: 'GITHUB_TOKEN')]) {
-                        retry(3) { // Retry up to 3 times in case of failure
-                            git branch: "${BRANCH}",
-                                url: "https://${GITHUB_TOKEN}@github.com/Miriama130/devops.git"
-                        }
-                    }
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: 'ons']],
+                        userRemoteConfigs: [[
+                            url: 'https://github.com/Miriama130/devops.git',
+                            credentialsId: 'Onsgit'
+                        ]]
+                    ])
                 }
             }
         }
 
-        stage('Nettoyage du projet') {
+        stage('Setup Maven') {
             steps {
-                echo '🧹 Cleaning temporary files...'
-                sh 'mvn clean'
+                sh 'echo "Setting up Maven..."'
+                sh 'mvn --version'
             }
         }
 
-        stage('Compilation & Tests') {
+        stage('Maven Build') {
             steps {
-                echo '🔬 Running tests and compiling project...'
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Run Unit Tests') {
+            steps {
                 sh 'mvn test'
             }
         }
 
-        stage('Construction du livrable') {
+        stage('Build Docker Image') {
             steps {
-                echo '🔨 Packaging the application...'
-                sh 'mvn package -DskipTests'
+                sh 'docker build -t "${DOCKER_IMAGE}" .'
             }
         }
 
-        stage('Construction de l\'image Docker') {
+        stage('Push to Docker Hub') {
             steps {
-                script {
-                    echo '🐳 Building Docker image...'
-                    def commitHash = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    IMAGE_TAG = commitHash
-
-                    sh """
-                        docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} .
-                        docker tag ${DOCKER_IMAGE}:${IMAGE_TAG} ${DOCKER_IMAGE}:latest
-                    """
+                withDockerRegistry([credentialsId: 'onsDocker', url: '']) {
+                    sh 'docker push "${DOCKER_IMAGE}"'
                 }
             }
         }
 
-        stage('Push vers Docker Hub') {
+        stage('Run Tests with Spring Profile') {
             steps {
-                script {
-                    echo '📤 Pushing Docker image to Docker Hub...'
-                    withCredentials([usernamePassword(credentialsId: 'onsDocker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh '''
-                            echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
-                            docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
-                            docker push ${DOCKER_IMAGE}:latest
-                        '''
-                    }
-                }
+                sh 'mvn test -Dspring.profiles.active=test'
             }
         }
     }
 
-    post {
-        success {
-            echo '✅ Pipeline completed successfully! 🚀'
-        }
-        failure {
-            echo '❌ Pipeline failed, check Jenkins logs for details.'
-        }
-        always {
-            echo '📌 Cleaning up workspace...'
-            sh 'docker system prune -f || true' // Cleanup Docker cache
-        }
-    }
 }
