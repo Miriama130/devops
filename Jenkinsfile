@@ -9,7 +9,7 @@ pipeline {
     }
 
     triggers {
-        pollSCM('H/5 * * * *') // Check for new commits every 5 minutes
+        pollSCM('H/5 * * * *')
     }
 
     stages {
@@ -33,6 +33,12 @@ pipeline {
         stage('Build Application') {
             steps {
                 sh 'mvn package -DskipTests'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'mvn test'
             }
         }
 
