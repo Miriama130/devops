@@ -3,13 +3,13 @@ pipeline {
 
     environment {
         DOCKER_REGISTRY = 'guesmizaineb'
-        IMAGE_NAME = 'alpine'
-        IMAGE_TAG = 'latest'
+        IMAGE_NAME = 'foyer-app'
+        IMAGE_TAG = "latest"
         GIT_CREDENTIALS_ID = 'ZAINEB'
     }
 
     triggers {
-        pollSCM('H/5 * * * *')
+        pollSCM('H/5 * * * *') // Check for new commits every 5 minutes
     }
 
     stages {
@@ -23,15 +23,16 @@ pipeline {
             }
         }
 
-        stage('Clean Project') {
+        stage('Clean Workspace') {
             steps {
-                sh 'echo "Cleaning project..."'
+                sh 'mvn clean'
+                sh 'rm -rf target'
             }
         }
 
-        stage('Build Maven') {
+        stage('Build Application') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn package -DskipTests'
             }
         }
 
@@ -52,12 +53,16 @@ pipeline {
                     }
                 }
             }
-
         }
 
         stage('Deploy') {
             steps {
                 script {
+                    // Stop and remove the previous container if it exists
+                    sh 'docker stop devops-app || true'
+                    sh 'docker rm devops-app || true'
+
+                    // Pull the latest version and deploy
                     sh 'docker pull ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
                     sh 'docker run -d -p 8081:8081 --name devops-app ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
                 }
