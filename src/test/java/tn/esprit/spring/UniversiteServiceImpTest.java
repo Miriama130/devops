@@ -13,7 +13,7 @@ import tn.esprit.spring.Services.Universite.UniversiteService;
 import java.util.Optional;
 import java.util.List;
 
-public class UniversiteServiceImpTes {
+class UniversiteServiceImpTest {
 
 
 
@@ -26,7 +26,7 @@ public class UniversiteServiceImpTes {
         private Universite universite;
 
         @BeforeEach
-        public void setUp() {
+        void setUp() {
             // Initialisation des mocks et des objets
             MockitoAnnotations.openMocks(this);
             universite = new Universite();
@@ -36,7 +36,7 @@ public class UniversiteServiceImpTes {
 
         // Test avec Mockito : Add or Update
         @Test
-        public void testAddOrUpdate() {
+        void testAddOrUpdate() {
             // Simuler le comportement du repository save()
             when(universiteRepository.save(any(Universite.class))).thenReturn(universite);
 
@@ -51,7 +51,7 @@ public class UniversiteServiceImpTes {
 
         // Test avec Mockito : Find All
         @Test
-        public void testFindAll() {
+        void testFindAll() {
             // Simuler la réponse du repository
             when(universiteRepository.findAll()).thenReturn(List.of(universite));
 
@@ -67,7 +67,7 @@ public class UniversiteServiceImpTes {
 
         // Test avec JUnit : Find By Id
         @Test
-        public void testFindById() {
+        void testFindById() {
             // Simuler le comportement du repository
             when(universiteRepository.findById(1L)).thenReturn(Optional.of(universite));
 
@@ -82,7 +82,7 @@ public class UniversiteServiceImpTes {
 
         // Test avec JUnit : Delete By Id
         @Test
-        public void testDeleteById() {
+        void testDeleteById() {
             // Appeler la méthode deleteById
             universiteService.deleteById(1L);
 

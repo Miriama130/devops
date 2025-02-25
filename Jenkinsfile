@@ -32,7 +32,7 @@ pipeline {
 
         stage('Build Application') {
             steps {
-                sh 'mvn package -DskipTests'
+                sh 'mvn clean compile -DskipTests'  // Ajout de clean et compile
             }
         }
 
@@ -71,6 +71,17 @@ pipeline {
                     // Pull the latest version and deploy
                     sh 'docker pull ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
                     sh 'docker run -d -p 8081:8081 --name devops-app ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
+                }
+            }
+        }
+
+        stage('MVN SONARQUBE') {
+            steps{
+                script {
+                    // Run SonarQube analysis
+                    withCredentials([string(credentialsId: 'SonarcubeJenkins', variable: 'SONAR_TOKEN')]) {
+                        sh "mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN}"
+                    }
                 }
             }
         }
