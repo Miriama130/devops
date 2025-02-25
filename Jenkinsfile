@@ -57,7 +57,10 @@ pipeline {
 
     post {
         success {
-            echo '🎉 Build et nettoyage terminés avec succès!'
+            echo "🎉 Build et nettoyage terminés avec succès!"
         }
         failure {
-            echo '❌ Une erreur s\'est produite pendant 
+            echo "❌ Une erreur s'est produite pendant le build."
+        }
+    }
+}
