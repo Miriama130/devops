@@ -5,10 +5,17 @@ pipeline {
         DOCKER_IMAGE = 'miriama13/foyer-app'
         DOCKER_TAG = 'v1'
         DOCKER_USERNAME = 'miriama13'
-        DOCKER_PASSWORD = 'mimi52150980'
+        DOCKER_PASSWORD = credentials('docker-hub-password')  // Stockez le mot de passe dans les Credentials Jenkins
     }
 
-   stage('Nettoyage du projet') {
+    stages {
+        stage('Checkout SCM') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Nettoyage du projet') {
             steps {
                 echo '🧹 Nettoyage des fichiers temporaires...'
                 sh 'mvn clean'
@@ -28,21 +35,6 @@ pipeline {
                 sh 'mvn package -DskipTests'
             }
         }
-    
-    stages {
-        stage('Checkout SCM') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Clean and Build') {
-            steps {
-                script {
-                    sh 'mvn clean install' // Clean and build the project
-                }
-            }
-        }
 
         stage('Push to Docker Hub') {
             steps {
@@ -56,18 +48,18 @@ pipeline {
 
         stage('Archive artifacts') {
             steps {
-                echo 'Archiving the JAR file'
-                archiveArtifacts artifacts: '*/target/.jar', allowEmptyArchive: true
+                echo '📦 Archivage du livrable'
+                archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
             }
         }
     }
 
     post {
         success {
-            echo 'Build and clean completed successfully!'
+            echo '🎉 Build et nettoyage terminés avec succès!'
         }
         failure {
-            echo 'There was an error in the build process.'
+            echo '❌ Une erreur s\'est produite pendant le build.'
         }
     }
 }
