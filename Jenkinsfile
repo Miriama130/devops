@@ -4,8 +4,6 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'miriama13/foyer-app'
         DOCKER_TAG = 'v1'
-        DOCKER_USERNAME = 'miriama13'
-        DOCKER_PASSWORD = credentials('docker-hub-password')  // Stockez le mot de passe dans les Credentials Jenkins
     }
 
     stages {
@@ -39,9 +37,12 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
-                    sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                    sh "docker logout"
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+                        sh "docker tag ${DOCKER_IMAGE}:latest ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        sh "docker logout"
+                    }
                 }
             }
         }
@@ -59,7 +60,4 @@ pipeline {
             echo '🎉 Build et nettoyage terminés avec succès!'
         }
         failure {
-            echo '❌ Une erreur s\'est produite pendant le build.'
-        }
-    }
-}
+            echo '❌ Une erreur s\'est produite pendant 
