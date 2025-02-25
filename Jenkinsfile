@@ -49,7 +49,7 @@ pipeline {
         stage('Push vers Docker Hub') {
             steps {
                 echo '📤 Vérification et envoi de l\'image Docker...'
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'onsDocker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
                         echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
                         docker push ${DOCKER_IMAGE}:latest
