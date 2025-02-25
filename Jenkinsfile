@@ -4,6 +4,8 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'miriama13/foyer-app'
         DOCKER_TAG = 'v1'
+        SONARQUBE_URL = 'http://172.20.99.98:9000/'  
+        SONARQUBE_TOKEN = credentials('sonarqubetoken')  
     }
 
     stages {
@@ -24,6 +26,22 @@ pipeline {
             steps {
                 echo '🔬 Compilation et exécution des tests...'
                 sh 'mvn test'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                echo '🔍 Analyse du code avec SonarQube...'
+                script {
+                    // Run SonarQube analysis using the Maven SonarQube plugin
+                    withCredentials([string(credentialsId: 'sonarqubetoken', variable: 'SONAR_TOKEN')]) {
+                        sh """
+                            mvn sonar:sonar \
+                                -Dsonar.host.url=${SONARQUBE_URL} \
+                                -Dsonar.login=${SONAR_TOKEN}
+                        """
+                    }
+                }
             }
         }
 
