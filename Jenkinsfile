@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     environment {
-        GIT_CREDENTIALS_ID = 'ONS' // Ensure 'ONS' is correctly stored in Jenkins Credentials
+        GIT_CREDENTIALS_ID = 'ONS'
     }
 
     triggers {
-        pollSCM('H/5 * * * *') // Polls SCM every 5 minutes (Reduce load)
+        pollSCM('H/5 * * * *') 
     }
 
     stages {
@@ -22,7 +22,19 @@ pipeline {
 
         stage('Clean Project') {
             steps {
-                sh 'echo "helloo!"'
+                script {
+                    // Clean the project (Assuming Maven)
+                    sh 'mvn clean' // Replace this with your project's clean command if different
+                }
+            }
+        }
+
+        stage('Test Unitaires') {
+            steps {
+                script {
+                    
+                    sh 'mvn test' 
+                }
             }
         }
     }
