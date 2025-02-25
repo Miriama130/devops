@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import tn.esprit.spring.DAO.Entities.Etudiant;
-import tn.esprit.spring.DAO.Repositories.EtudiantRepository;
-import tn.esprit.spring.Services.Etudiant.EtudiantService;
+import tn.esprit.spring.dao.entities.Etudiant;
+import tn.esprit.spring.dao.Repositories.EtudiantRepository;
+import tn.esprit.spring.services.etudiant.EtudiantService;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -81,13 +81,13 @@ class EtudiantServiceMockTest {
     // Test for deleteById method
     @Test
     void testDeleteById() {
-        Etudiant etudiant = new Etudiant("Mark", "Johnson", Long.valueOf(123456), "ESPRIT", LocalDate.of(1995, 11, 30));
+        Etudiant etudiant = new Etudiant("Mark", "Johnson", Long.valueOf(1), "ESPRIT", LocalDate.of(1995, 11, 30));
 
         // When we call the deleteById method, we don't expect any result, just a call
-        etudiantService.deleteById(1L);
+        etudiantService.deleteById(etudiant.getIdEtudiant());
 
         // Verify that deleteById was called once with the correct ID
-        verify(etudiantRepository, times(1)).deleteById(1L);
+        verify(etudiantRepository, times(1)).deleteById(etudiant.getIdEtudiant());
     }
 
     // Test for delete method
