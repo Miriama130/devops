@@ -7,11 +7,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import tn.esprit.spring.DAO.Entities.Chambre;
-import tn.esprit.spring.DAO.Entities.TypeChambre;
-import tn.esprit.spring.DAO.Repositories.ChambreRepository;
-import tn.esprit.spring.DAO.Repositories.BlocRepository;
-import tn.esprit.spring.Services.Chambre.ChambreService;
+import tn.esprit.spring.dao.entities.Chambre;
+import tn.esprit.spring.dao.entities.TypeChambre;
+import tn.esprit.spring.dao.repositories.ChambreRepository;
+import tn.esprit.spring.dao.repositories.BlocRepository;
+import tn.esprit.spring.services.Chambre.ChambreService;
 
 import java.util.ArrayList;
 import java.util.List;
