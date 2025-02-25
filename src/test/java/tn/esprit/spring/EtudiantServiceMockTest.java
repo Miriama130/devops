@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import tn.esprit.spring.dao.entities.Etudiant;
-import tn.esprit.spring.dao.Repositories.EtudiantRepository;
-import tn.esprit.spring.services.etudiant.EtudiantService;
+import tn.esprit.spring.DAO.Entities.Etudiant;
+import tn.esprit.spring.DAO.Repositories.EtudiantRepository;
+import tn.esprit.spring.Services.Etudiant.EtudiantService;
 
 import java.time.LocalDate;
 import java.util.Arrays;
