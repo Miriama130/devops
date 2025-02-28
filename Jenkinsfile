@@ -37,7 +37,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    withCredentials([string(credentialsId: 'Jenkins_SonarqubeToken', variable: 'SONAR_TOKEN')]) {
+                    withCredentials([string(credentialsId: 'Jenkins_Sonarqube_Token', variable: 'SONAR_TOKEN')]) {
                         sh '''
                         mvn sonar:sonar \
                           -Dsonar.projectKey=foyer-app \
