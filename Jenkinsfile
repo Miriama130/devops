@@ -1,6 +1,5 @@
 pipeline {
     agent any
-
     environment {
         DOCKER_REGISTRY = 'guesmizaineb'
         IMAGE_NAME = 'foyer-app'
@@ -34,17 +33,14 @@ pipeline {
                 sh 'mvn compile'
             }
         }
+
         stage('SonarQube Analysis') {
-            environment {
-                SONARQUBE_SCANNER_HOME = tool 'SonarQube Scanner'
-            }
             steps {
                 withSonarQubeEnv('SonarQube') {
                     withCredentials([string(credentialsId: 'Jenkins_SonarqubeToken', variable: 'SONAR_TOKEN')]) {
                         sh '''
-                        ${SONARQUBE_SCANNER_HOME}/bin/sonar-scanner \
+                        mvn sonar:sonar \
                           -Dsonar.projectKey=foyer-app \
-                          -Dsonar.sources=. \
                           -Dsonar.host.url=http://172.19.129.224:9000 \
                           -Dsonar.login=$SONAR_TOKEN
                         '''
@@ -52,7 +48,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Build Application') {
             steps {
