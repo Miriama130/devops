@@ -23,17 +23,20 @@ pipeline {
             }
         }
 
-        stage('Clean ') {
+        stage('Clean') {
             steps {
-                sh 'mvn clean '
+                sh 'mvn clean'
             }
         }
-         stage(' Compile') {
-                    steps {
-                        sh 'mvn  compile'
-                    }
-                }
 
+        stage('Compile') {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        // Décommente cette section uniquement si tu veux activer SonarQube
+        /*
         stage('SonarQube Analysis') {
             environment {
                 SONARQUBE_SCANNER_HOME = tool 'SonarQube Scanner'
@@ -52,6 +55,7 @@ pipeline {
                 }
             }
         }
+        */
 
         stage('Build Application') {
             steps {
@@ -87,11 +91,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Stop and remove the previous container if it exists
                     sh 'docker stop devops-app || true'
                     sh 'docker rm devops-app || true'
-
-                    // Pull the latest version and deploy
                     sh 'docker pull ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
                     sh 'docker run -d -p 8081:8081 --name devops-app ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
                 }
