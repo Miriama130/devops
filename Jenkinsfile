@@ -34,9 +34,6 @@ pipeline {
                 sh 'mvn compile'
             }
         }
-
-        // Décommente cette section uniquement si tu veux activer SonarQube
-        /*
         stage('SonarQube Analysis') {
             environment {
                 SONARQUBE_SCANNER_HOME = tool 'SonarQube Scanner'
@@ -55,7 +52,7 @@ pipeline {
                 }
             }
         }
-        */
+
 
         stage('Build Application') {
             steps {
