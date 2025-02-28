@@ -8,14 +8,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import tn.esprit.spring.DAO.Entities.Universite;
 import tn.esprit.spring.DAO.Repositories.UniversiteRepository;
-import tn.esprit.spring.Services.Universite.UniversiteService;
+import tn.esprit.spring.Services.universite1.UniversiteService;
 
 import java.util.Optional;
 import java.util.List;
 
 class UniversiteServiceImpTest {
-
-
 
         @Mock
         private UniversiteRepository universiteRepository;

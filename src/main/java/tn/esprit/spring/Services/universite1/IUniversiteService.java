@@ -1,4 +1,4 @@
-package tn.esprit.spring.Services.Universite;
+package tn.esprit.spring.Services.universite1;
 
 import tn.esprit.spring.DAO.Entities.Universite;
 
