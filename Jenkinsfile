@@ -43,10 +43,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Pull the base image (only if not already cached)
+                    // Try to pull the base image (only if not already cached)
                     sh 'docker pull openjdk:17-jdk || true'
                     // Build the Docker image using the defined DOCKER_IMAGE variable
-                    sh 'docker build -t ${DOCKER_IMAGE} .'
+                    sh "docker build -t ${DOCKER_IMAGE} ."
                 }
             }
         }
@@ -59,7 +59,7 @@ pipeline {
                         sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
                     }
                     // Push the Docker image to Docker Hub
-                    sh 'docker push ${DOCKER_IMAGE}'
+                    sh "docker push ${DOCKER_IMAGE}"
                 }
             }
         }
