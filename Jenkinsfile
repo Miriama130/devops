@@ -1,8 +1,11 @@
 pipeline {
     agent any
-
+    
+    environment {
+        SONARQUBE_URL = 'http://172.20.99.98:9000/'  
+        SONARQUBE_TOKEN = credentials('sonarqubetoken')  
+    }
    
-
     stages {
         stage('Checkout SCM') {
             steps {
@@ -26,10 +29,17 @@ pipeline {
             }
         }
 
-        stage('MVN SONARQUBE') {
+        stage('SonarQube Analysis') {
             steps {
+                echo '🔍 Analyse du code avec SonarQube...'
                 script {
-                    mvn sonar:sonar
+                    withCredentials([string(credentialsId: 'sonarqubetoken', variable: 'SONAR_TOKEN')]) {
+                        sh """
+                            mvn sonar:sonar \
+                                -Dsonar.host.url=${SONARQUBE_URL} \
+                                -Dsonar.login=${SONAR_TOKEN}
+                        """
+                    }
                 }
             }
         }
