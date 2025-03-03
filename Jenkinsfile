@@ -44,7 +44,7 @@ pipeline {
             steps {
                 script {
                     // Pull the base image (only if not already cached)
-                    sh 'docker pull openjdk:17-jdk-alpine || true'
+                    sh 'docker pull openjdk:17-jdk || true'
                     // Build the Docker image using the defined DOCKER_IMAGE variable
                     sh 'docker build -t ${DOCKER_IMAGE} .'
                 }
