@@ -43,31 +43,37 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+
+ stage('Build Docker Image') {
             steps {
-                echo 'Building Docker Image...'
                 script {
-                    // Pull the base image (only if not already cached)
-                    sh 'docker pull onsdachraoui/foyer-app:latest || true'
-                    // Build the Docker image using the defined DOCKER_IMAGE variable
-                    sh "docker build -t ${DOCKER_IMAGE} ."
+                    // Connexion à Docker Hub avec les credentials sécurisés
+                    withCredentials([usernamePassword(credentialsId: 'DOCKER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh '''
+                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                        '''
+
+                        // Construction de l'image Docker
+                        sh 'docker build -t $DOCKER_IMAGE .'
+                    }
                 }
             }
         }
 
-        stage('Push to Docker Hub') {
-            steps {
-                echo 'Pushing Docker Image to Docker Hub...'
-                script {
-                    // Docker login (ensure credentials are set in Jenkins)
-                    withCredentials([usernamePassword(credentialsId: 'DOCKER', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+          stage('Push Docker Image') {
+                    steps {
+                        script {
+                            // Push de l'image vers Docker Hub
+                            withCredentials([usernamePassword(credentialsId: 'DOCKER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                                sh '''
+                                echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                                docker push $DOCKER_IMAGE
+                                '''
+                            }
+                        }
                     }
-                    // Push the Docker image to Docker Hub
-                    sh "docker push ${DOCKER_IMAGE}"
                 }
             }
-        }
 
         stage('Run Tests with Spring Profile') {
             steps {
