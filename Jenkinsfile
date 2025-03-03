@@ -42,14 +42,18 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t "${DOCKER_IMAGE}" .'
+                script {
+                    sh "docker build -t ${DOCKER_IMAGE} ."
+                }
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                withDockerRegistry([credentialsId: 'onsDocker', url: '']) {
-                    sh 'docker push "${DOCKER_IMAGE}"'
+                script {
+                    withDockerRegistry([credentialsId: 'onsDocker', url: '']) {
+                        sh "docker push ${DOCKER_IMAGE}"
+                    }
                 }
             }
         }
@@ -60,5 +64,4 @@ pipeline {
             }
         }
     }
-
 }
