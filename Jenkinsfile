@@ -39,14 +39,15 @@ pipeline {
                 sh 'mvn test'
             }
         }
-
         stage('Build Docker Image') {
-            steps {
-                script {
-                    sh "docker build -t ${DOCKER_IMAGE}"
-                }
-            }
+        steps {
+        script {
+            // Add the context for Docker build
+            def dockerContext = '.'  // Use current directory as the build context
+            sh "docker buildx build -t onsdachraoui/foyer-app:latest ${dockerContext}"
         }
+    }
+}
 
         stage('Push to Docker Hub') {
             steps {
