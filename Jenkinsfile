@@ -43,9 +43,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Pull the image only if it's not already cached
+                    // Pull the base image (only if not already cached)
                     sh 'docker pull openjdk:17-jdk-alpine || true'
-                    // Build the Docker image
+                    // Build the Docker image using the defined DOCKER_IMAGE variable
                     sh 'docker build -t ${DOCKER_IMAGE} .'
                 }
             }
@@ -58,7 +58,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'onsDocker', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh 'echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin'
                     }
-                    // Push the Docker image
+                    // Push the Docker image to Docker Hub
                     sh 'docker push ${DOCKER_IMAGE}'
                 }
             }
