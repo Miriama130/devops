@@ -48,7 +48,7 @@ pipeline {
                 echo 'Building Docker Image...'
                 script {
                     // Pull the base image (only if not already cached)
-                    sh 'docker pull openjdk:17-jdk || true'
+                    sh 'docker pull onsdachraoui/foyer-app:latest || true'
                     // Build the Docker image using the defined DOCKER_IMAGE variable
                     sh "docker build -t ${DOCKER_IMAGE} ."
                 }
