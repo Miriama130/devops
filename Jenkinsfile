@@ -39,15 +39,17 @@ pipeline {
                 sh 'mvn test'
             }
         }
-        stage('Build Docker Image') {
-        steps {
-        script {
-            // Add the context for Docker build
-            def dockerContext = '.'  // Use current directory as the build context
-            sh "docker buildx build -t onsdachraoui/foyer-app:latest ${dockerContext}"
-        }
+stages {
+  stage('Build') {
+    steps {
+      script {
+        // Pull the image only if it's not already cached
+        sh 'docker pull openjdk:17-jdk-alpine || true'
+      }
     }
+  }
 }
+
 
         stage('Push to Docker Hub') {
             steps {
