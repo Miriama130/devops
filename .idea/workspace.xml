@@ -7,6 +7,42 @@
     <list default="true" id="edcaeebc-8a1f-402f-b2b3-2b6601656a09" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Jenkinsfile" beforeDir="false" afterPath="$PROJECT_DIR$/Jenkinsfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/AOP/FoyerAspect.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/aop/FoyerAspect.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Config/SpringDocConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/config/SpringDocConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Entities/Bloc.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/entities/Bloc.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Entities/Chambre.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/entities/Chambre.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Entities/Etudiant.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/entities/Etudiant.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Entities/Foyer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/entities/Foyer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Entities/Reservation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/entities/Reservation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Entities/TypeChambre.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/entities/TypeChambre.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Entities/Universite.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/entities/Universite.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Repositories/BlocRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/repositories/BlocRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Repositories/ChambreRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/repositories/ChambreRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Repositories/EtudiantRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/repositories/EtudiantRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Repositories/FoyerRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/repositories/FoyerRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Repositories/ReservationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/repositories/ReservationRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/DAO/Repositories/UniversiteRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/dao/repositories/UniversiteRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/RestControllers/BlocRestController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/restcontrollers/BlocRestController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/RestControllers/ChambreRestController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/restcontrollers/ChambreRestController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/RestControllers/EtudiantRestController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/restcontrollers/EtudiantRestController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/RestControllers/FoyerRestController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/restcontrollers/FoyerRestController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/RestControllers/ReservationRestController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/restcontrollers/ReservationRestController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/RestControllers/UniversiteRestController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/restcontrollers/UniversiteRestController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Schedular/Schedular.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/schedular/Schedular.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Schedular/test.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/schedular/Test.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Services/Bloc/BlocService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/services/Bloc/BlocService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Services/Bloc/IBlocService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/services/Bloc/IBlocService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Services/Chambre/ChambreService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/services/Chambre/ChambreService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Services/Chambre/IChambreService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/services/Chambre/IChambreService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Services/Etudiant/EtudiantService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/services/Etudiant/EtudiantService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Services/Etudiant/IEtudiantService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/services/Etudiant/IEtudiantService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Services/Foyer/FoyerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/services/Foyer/FoyerService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Services/Foyer/IFoyerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/services/Foyer/IFoyerService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Services/Reservation/IReservationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/services/reservation/IReservationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Services/Reservation/ReservationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/services/reservation/ReservationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Services/Universite/IUniversiteService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/services/Universite/IUniversiteService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/Services/Universite/UniversiteService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tn/esprit/spring/services/Universite/UniversiteService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/tn/esprit/spring/ReservationServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/tn/esprit/spring/ReservationServiceTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -137,7 +173,8 @@
       <workItem from="1739882074985" duration="7813000" />
       <workItem from="1740402138156" duration="2180000" />
       <workItem from="1740481917291" duration="29232000" />
-      <workItem from="1740989840848" duration="13768000" />
+      <workItem from="1740989840848" duration="16045000" />
+      <workItem from="1741025925426" duration="6197000" />
     </task>
     <servers />
   </component>

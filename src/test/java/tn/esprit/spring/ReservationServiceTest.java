@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import tn.esprit.spring.DAO.Entities.Reservation;
-import tn.esprit.spring.DAO.Repositories.ChambreRepository;
-import tn.esprit.spring.DAO.Repositories.ReservationRepository;
-import tn.esprit.spring.Services.Reservation.ReservationService;
+import tn.esprit.spring.dao.entities.Reservation;
+import tn.esprit.spring.dao.repositories.ChambreRepository;
+import tn.esprit.spring.dao.repositories.ReservationRepository;
+import tn.esprit.spring.services.reservation.ReservationService;
 
 import java.util.Optional;
 

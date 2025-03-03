@@ -59,6 +59,24 @@ pipeline {
                 }
             }
         }
+            stage('SonarQube Analysis') {
+                steps {
+                    script {
+                        withSonarQubeEnv('SonarQube') {
+                            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                                def sonarCmd = """
+                                    mvn sonar:sonar \
+                                    -Dsonar.projectKey=foyer-app \
+                                    -Dsonar.host.url=http://172.19.129.224:9000 \
+                                    -Dsonar.login=${SONAR_TOKEN}
+                                """.trim()
+
+                                sh sonarCmd
+                            }
+                        }
+                    }
+                }
+            }
 
           stage('Push Docker Image') {
                     steps {
