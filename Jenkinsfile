@@ -39,17 +39,15 @@ pipeline {
                 sh 'mvn test'
             }
         }
-stages {
-  stage('Build') {
-    steps {
-      script {
-        // Pull the image only if it's not already cached
-        sh 'docker pull openjdk:17-jdk-alpine || true'
-      }
-    }
-  }
-}
 
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Pull the image only if it's not already cached
+                    sh 'docker pull openjdk:17-jdk-alpine || true'
+                }
+            }
+        }
 
         stage('Push to Docker Hub') {
             steps {
