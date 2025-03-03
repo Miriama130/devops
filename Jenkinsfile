@@ -5,7 +5,7 @@ pipeline {
         DOCKER_IMAGE = 'miriama13/foyer-app'
         DOCKER_TAG = 'v1'
         SONARQUBE_URL = 'http://172.20.99.98:9000/'  
-        SONARQUBE_TOKEN = credentials('sonarqubetoken')  
+        SONARQUBE_TOKEN = credentials('sonarqubetoken')
     }
 
     stages {
@@ -31,9 +31,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') { 
                     sh 'mvn sonar:sonar'
-                }
             }
         }
 
