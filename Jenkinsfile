@@ -55,7 +55,9 @@ pipeline {
             steps {
                 script {
                     // Docker login (ensure credentials are set in Jenkins)
-                    sh 'echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin'
+                    withCredentials([usernamePassword(credentialsId: 'onsDocker', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin'
+                    }
                     // Push the Docker image
                     sh 'docker push ${DOCKER_IMAGE}'
                 }
