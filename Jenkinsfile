@@ -31,16 +31,8 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                echo '🔍 Analyse du code avec SonarQube...'
-                script {
-                    // Run SonarQube analysis using the Maven SonarQube plugin
-                    withCredentials([string(credentialsId: 'sonarqubetoken', variable: 'SONAR_TOKEN')]) {
-                        sh """
-                            mvn sonar:sonar \
-                                -Dsonar.host.url=${SONARQUBE_URL} \
-                                -Dsonar.login=${SONAR_TOKEN}
-                        """
-                    }
+                withSonarQubeEnv('SonarQube') { 
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
