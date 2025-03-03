@@ -35,7 +35,8 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.32</version> <!-- Replace with the latest stable version -->
+            <version>8.0.32</version> <!-- Remplacez par la dernière version stable -->
+            <scope>runtime</scope> <!-- Il est généralement recommandé de l'utiliser en runtime -->
         </dependency>
 
         <!-- Lombok -->
