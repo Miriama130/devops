@@ -30,19 +30,19 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            steps {
-                echo '🔍 Analyse du code avec SonarQube...'
+        steps {
+            echo '🔍 Analyse du code avec SonarQube...'
                 script {
-                    withCredentials([string(credentialsId: 'sonarqubetoken', variable: 'SONAR_TOKEN')]) {
-                        sh """
-                            mvn sonar:sonar \
-                                -Dsonar.host.url=${SONARQUBE_URL} \
-                                -Dsonar.login=${SONAR_TOKEN}
-                        """
-                    }
+                    sh """
+                        mvn sonar:sonar \
+                            -Dsonar.host.url=${SONARQUBE_URL} \
+                            -Dsonar.login=${SONARQUBE_TOKEN}
+                    """
                 }
             }
         }
+
+
     }
 
     post {
