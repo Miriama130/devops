@@ -45,6 +45,8 @@ pipeline {
                 script {
                     // Pull the image only if it's not already cached
                     sh 'docker pull openjdk:17-jdk-alpine || true'
+                    // Build the Docker image
+                    sh 'docker build -t ${DOCKER_IMAGE} .'
                 }
             }
         }
@@ -52,9 +54,10 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    withDockerRegistry([credentialsId: 'onsDocker', url: '']) {
-                        sh "docker push ${DOCKER_IMAGE}"
-                    }
+                    // Docker login (ensure credentials are set in Jenkins)
+                    sh 'echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin'
+                    // Push the Docker image
+                    sh 'docker push ${DOCKER_IMAGE}'
                 }
             }
         }
