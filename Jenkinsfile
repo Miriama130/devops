@@ -43,8 +43,14 @@ pipeline {
             }
         }
 
+        stage('Verify Dockerfile') {
+            steps {
+                echo 'Verifying Dockerfile...'
+                sh 'ls -l' // Vérifiez que le Dockerfile est présent
+            }
+        }
 
- stage('Build Docker Image') {
+       stage('Build Docker Image') {
             steps {
                 script {
                     // Connexion à Docker Hub avec les credentials sécurisés
@@ -58,40 +64,23 @@ pipeline {
                     }
                 }
             }
+
         }
-            stage('SonarQube Analysis') {
-                steps {
-                    script {
-                        withSonarQubeEnv('SonarQube') {
-                            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                                def sonarCmd = """
-                                    mvn sonar:sonar \
-                                    -Dsonar.projectKey=foyer-app \
-                                    -Dsonar.host.url=http://172.19.129.224:9000 \
-                                    -Dsonar.login=${SONAR_TOKEN}
-                                """.trim()
 
-                                sh sonarCmd
-                            }
-                        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    // Push de l'image vers Docker Hub
+                    withCredentials([usernamePassword(credentialsId: 'DOCKER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh '''
+                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                        docker push $DOCKER_IMAGE
+                        '''
                     }
                 }
             }
-
-          stage('Push Docker Image') {
-                    steps {
-                        script {
-                            // Push de l'image vers Docker Hub
-                            withCredentials([usernamePassword(credentialsId: 'DOCKER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                                sh '''
-                                echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                                docker push $DOCKER_IMAGE
-                                '''
-                            }
-                        }
-                    }
-                }
-            }
+        }
 
         stage('Run Tests with Spring Profile') {
             steps {
@@ -99,5 +88,24 @@ pipeline {
                 sh 'mvn test -Dspring.profiles.active=test'
             }
         }
+         stage('SonarQube Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv('SonarQube') {
+                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                            def sonarCmd = """
+                                mvn sonar:sonar \
+                                -Dsonar.projectKey=foyer-app \
+                                -Dsonar.host.url=http://172.18.64.72:9000 \
+                                -Dsonar.login=${SONAR_TOKEN}
+                            """.trim()
+
+                            sh sonarCmd
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }
