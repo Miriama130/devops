@@ -4,8 +4,8 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'miriama13/foyer-app'
         DOCKER_TAG = 'v1'
-        SONARQUBE_URL = 'http://172.20.99.98:9000/'  
-        SONARQUBE_TOKEN = credentials('sonarqubetoken')  
+        SONARQUBE_URL = 'http://172.20.99.98:9000/'
+        SONARQUBE_TOKEN = credentials('sonarqubetoken')
         NEXUS_URL = 'http://172.20.99.98:8081/repository/maven-releases/'
         NEXUS_CREDENTIALS = credentials('nexus')
     }
@@ -71,17 +71,14 @@ pipeline {
                 echo '📦 Déploiement du livrable sur Nexus...'
                 script {
                     withCredentials([usernamePassword(credentialsId: 'nexus', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
-                       sh """
-    mvn deploy \
-        -DaltDeploymentRepository=nexus::default::${NEXUS_URL} \
-        -Dnexus.username=${NEXUS_USER} \
-        -Dnexus.password=${NEXUS_PASSWORD} \
-        -DskipTests
-"""
+                        sh """
+                            mvn deploy \
+                                -DaltDeploymentRepository=nexus::default::${NEXUS_URL} \
+                                -Dnexus.username=${NEXUS_USER} \
+                                -Dnexus.password=${NEXUS_PASSWORD} \
+                                -DskipTests
+                        """
                     }
-
-
-                    
                 }
             }
         }
