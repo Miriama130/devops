@@ -6,6 +6,8 @@ pipeline {
         DOCKER_TAG = 'v1'
         SONARQUBE_URL = 'http://172.20.99.98:9000/'  
         SONARQUBE_TOKEN = credentials('sonarqubetoken')  
+        NEXUS_URL = 'http://172.20.99.99:8081/repository/maven-releases/'
+        NEXUS_CREDENTIALS = credentials('nexuscredentials')
     }
 
     stages {
@@ -33,7 +35,6 @@ pipeline {
             steps {
                 echo '🔍 Analyse du code avec SonarQube...'
                 script {
-                    // Run SonarQube analysis using the Maven SonarQube plugin
                     withCredentials([string(credentialsId: 'sonarqubetoken', variable: 'SONAR_TOKEN')]) {
                         sh """
                             mvn sonar:sonar \
@@ -65,6 +66,22 @@ pipeline {
             }
         }
 
+        stage('Déploiement sur Nexus') {
+            steps {
+                echo '📦 Déploiement du livrable sur Nexus...'
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'nexuscredentials', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
+                        sh """
+                            mvn deploy \
+                                -DaltDeploymentRepository=nexus::default::${NEXUS_URL} \
+                                -Dnexus.username=${NEXUS_USER} \
+                                -Dnexus.password=${NEXUS_PASSWORD}
+                        """
+                    }
+                }
+            }
+        }
+
         stage('Archive artifacts') {
             steps {
                 echo '📦 Archivage du livrable'
@@ -75,10 +92,10 @@ pipeline {
 
     post {
         success {
-            echo "🎉 Build et nettoyage terminés avec succès!"
+            echo "🎉 Build, déploiement et nettoyage terminés avec succès!"
         }
         failure {
-            echo "❌ Une erreur s'est produite pendant le build."
+            echo "❌ Une erreur s'est produite pendant le pipeline."
         }
     }
 }
