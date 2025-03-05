@@ -72,7 +72,7 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'nexus', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
                         sh """
-                            mvn deploy \
+                            mvn deploy -X \
                                 -DaltDeploymentRepository=nexus::default::${NEXUS_URL} \
                                 -Dnexus.username=${NEXUS_USER} \
                                 -Dnexus.password=${NEXUS_PASSWORD} \
