@@ -6,8 +6,8 @@ pipeline {
         DOCKER_TAG = 'v1'
         SONARQUBE_URL = 'http://172.20.99.98:9000/'  
         SONARQUBE_TOKEN = credentials('sonarqubetoken')  
-        NEXUS_URL = 'http://172.20.99.99:8081/repository/maven-releases/'
-        NEXUS_CREDENTIALS = credentials('nexuscredentials')
+        NEXUS_URL = 'http://172.20.99.98:8081/repository/maven-releases/'
+        NEXUS_CREDENTIALS = credentials('nexus')
     }
 
     stages {
