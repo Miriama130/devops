@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "onsdachraoui/foyer-app:latest"
+        NEXUS_URL = "http://172.18.64.72:8081"
+        NEXUS_REPO = "maven-releases"  // Remplace par "maven-snapshots" si nécessaire
     }
 
     stages {
@@ -24,7 +26,7 @@ pipeline {
 
         stage('Setup Maven') {
             steps {
-                echo 'Setting up Maven...'
+                echo 'Checking Maven version...'
                 sh 'mvn --version'
             }
         }
@@ -32,7 +34,8 @@ pipeline {
         stage('Maven Build') {
             steps {
                 echo 'Building Maven Project...'
-                sh 'mvn clean package -DskipTests'
+                sh 'mvn clean package'
+                sh 'ls -l target/'  // Vérifie que le JAR est bien généré
             }
         }
 
@@ -45,8 +48,14 @@ pipeline {
 
         stage('Verify Dockerfile') {
             steps {
-                echo 'Verifying Dockerfile...'
-                sh 'ls -l' // Vérifiez que le Dockerfile est présent
+                echo 'Checking Dockerfile presence...'
+                sh '''
+                if [ ! -f Dockerfile ]; then
+                    echo "ERROR: Dockerfile is missing!"
+                    exit 1
+                fi
+                ls -l Dockerfile
+                '''
             }
         }
 
@@ -83,20 +92,26 @@ pipeline {
             }
         }
 
-        stage("Déployer l'artefact vers Nexus") {
+        stage("Deploy Artifact to Nexus") {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'NEXUS_CREDENTIALS', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
                         sh '''
                             set -e
                             VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+                            ARTIFACT_NAME=Foyer-${VERSION}.jar
+
+                            if [ ! -f "target/${ARTIFACT_NAME}" ]; then
+                                echo "ERROR: Artifact ${ARTIFACT_NAME} not found!"
+                                exit 1
+                            fi
 
                             mvn deploy:deploy-file \
                                 -Durl=${NEXUS_URL}/repository/${NEXUS_REPO}/ \
-                                -DrepositoryId=${NEXUS_REPO} \
-                                -Dfile=target/tp-foyer-${VERSION}.jar \
-                                -DgroupId=tn.esprit \
-                                -DartifactId=tp-foyer \
+                                -DrepositoryId=nexus \
+                                -Dfile=target/${ARTIFACT_NAME} \
+                                -DgroupId=tn.esprit.spring \
+                                -DartifactId=Foyer \
                                 -Dversion=${VERSION} \
                                 -Dpackaging=jar \
                                 -DgeneratePom=true
@@ -106,23 +121,33 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') { // ✅ Déplacé dans `stages {}`
+        stage('SonarQube Analysis') {
             steps {
                 script {
                     withSonarQubeEnv('SonarQube') {
                         withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                            def sonarCmd = """
-                                mvn sonar:sonar \
+                            sh '''
+                            mvn sonar:sonar \
                                 -Dsonar.projectKey=foyer-app \
                                 -Dsonar.host.url=http://172.18.64.72:9000 \
-                                -Dsonar.login=${SONAR_TOKEN}
-                            """.trim()
-
-                            sh sonarCmd
+                                -Dsonar.login=$SONAR_TOKEN
+                            '''
                         }
                     }
                 }
             }
         }
-    } // ✅ Fin correcte de `stages {}`
-} // ✅ Fin correcte de `pipeline {}`
+    }
+
+    post {
+        always {
+            echo "Pipeline completed!"
+        }
+        failure {
+            echo "Pipeline failed!"
+        }
+        success {
+            echo "Pipeline succeeded!"
+        }
+    }
+}
