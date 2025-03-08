@@ -106,6 +106,27 @@ pipeline {
                 }
             }
         }
+stage("Déployer l'artefact vers Nexus") {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: NEXUS_CREDENTIALS, passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
+                        sh '''
+                            set -e
+                            VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 
+                            mvn deploy:deploy-file \
+                                -Durl=${NEXUS_URL}/repository/${NEXUS_REPO}/ \
+                                -DrepositoryId=${NEXUS_REPO} \
+                                -Dfile=target/tp-foyer-${VERSION}.jar \
+                                -DgroupId=tn.esprit \
+                                -DartifactId=tp-foyer \
+                                -Dversion=${VERSION} \
+                                -Dpackaging=jar \
+                                -DgeneratePom=true
+                        '''
+                    }
+                }
+            }
+        }
     }
 }
