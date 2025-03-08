@@ -50,28 +50,22 @@ pipeline {
             }
         }
 
-       stage('Build Docker Image') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    // Connexion à Docker Hub avec les credentials sécurisés
                     withCredentials([usernamePassword(credentialsId: 'DOCKER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         sh '''
                         echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                        docker build -t $DOCKER_IMAGE .
                         '''
-
-                        // Construction de l'image Docker
-                        sh 'docker build -t $DOCKER_IMAGE .'
                     }
                 }
             }
-
         }
-
 
         stage('Push Docker Image') {
             steps {
                 script {
-                    // Push de l'image vers Docker Hub
                     withCredentials([usernamePassword(credentialsId: 'DOCKER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         sh '''
                         echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
@@ -88,28 +82,11 @@ pipeline {
                 sh 'mvn test -Dspring.profiles.active=test'
             }
         }
-         stage('SonarQube Analysis') {
-            steps {
-                script {
-                    withSonarQubeEnv('SonarQube') {
-                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                            def sonarCmd = """
-                                mvn sonar:sonar \
-                                -Dsonar.projectKey=foyer-app \
-                                -Dsonar.host.url=http://172.18.64.72:9000 \
-                                -Dsonar.login=${SONAR_TOKEN}
-                            """.trim()
 
-                            sh sonarCmd
-                        }
-                    }
-                }
-            }
-        }
-stage("Déployer l'artefact vers Nexus") {
+        stage("Déployer l'artefact vers Nexus") {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: NEXUS_CREDENTIALS, passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
+                    withCredentials([usernamePassword(credentialsId: 'NEXUS_CREDENTIALS', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
                         sh '''
                             set -e
                             VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -128,5 +105,24 @@ stage("Déployer l'artefact vers Nexus") {
                 }
             }
         }
-    }
-}
+
+        stage('SonarQube Analysis') { // ✅ Déplacé dans `stages {}`
+            steps {
+                script {
+                    withSonarQubeEnv('SonarQube') {
+                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                            def sonarCmd = """
+                                mvn sonar:sonar \
+                                -Dsonar.projectKey=foyer-app \
+                                -Dsonar.host.url=http://172.18.64.72:9000 \
+                                -Dsonar.login=${SONAR_TOKEN}
+                            """.trim()
+
+                            sh sonarCmd
+                        }
+                    }
+                }
+            }
+        }
+    } // ✅ Fin correcte de `stages {}`
+} // ✅ Fin correcte de `pipeline {}`
