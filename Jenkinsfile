@@ -70,9 +70,14 @@ pipeline {
             steps {
                 echo '📦 Déploiement du livrable sur Nexus...'
                 script {
+                    echo "Vérification de la connexion à Nexus..."
                     echo "NEXUS_URL: $NEXUS_URL"
                     echo "NEXUS_USER: $NEXUS_USER"
                     echo "NEXUS_PASSWORD: $NEXUS_PASSWORD"
+
+                    // Vérification de l'artefact avant le déploiement
+                    sh 'ls -la target' // Vérifie la présence de l'artefact
+
                     withCredentials([usernamePassword(credentialsId: 'nexus', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
                         sh '''
                             mvn deploy -X \
@@ -88,8 +93,12 @@ pipeline {
 
         stage('Archive artifacts') {
             steps {
-                echo '📦 Archivage du livrable'
-                sh 'ls -la target'  // Liste les fichiers dans le répertoire target pour vérifier les artefacts
+                echo '📦 Archivage du livrable...'
+                
+                // Liste les artefacts pour vérifier leur présence
+                sh 'ls -la target'  // Liste tous les fichiers dans le répertoire target
+
+                // Archivage des artefacts
                 archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
             }
         }
