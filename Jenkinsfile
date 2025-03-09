@@ -5,9 +5,7 @@ pipeline {
         DOCKER_IMAGE = 'miriama13/foyer-app'
         DOCKER_TAG = 'v1'
         SONARQUBE_URL = 'http://172.20.99.98:9000/'
-        SONARQUBE_TOKEN = credentials('sonarqubetoken')
         NEXUS_URL = 'http://172.20.99.98:8081/repository/maven-releases/'
-        NEXUS_CREDENTIALS = credentials('nexus')
     }
 
     stages {
@@ -36,11 +34,11 @@ pipeline {
                 echo '🔍 Analyse du code avec SonarQube...'
                 script {
                     withCredentials([string(credentialsId: 'sonarqubetoken', variable: 'SONAR_TOKEN')]) {
-                        sh """
+                        sh '''
                             mvn sonar:sonar \
-                                -Dsonar.host.url=${SONARQUBE_URL} \
-                                -Dsonar.login=${SONAR_TOKEN}
-                        """
+                                -Dsonar.host.url=$SONARQUBE_URL \
+                                -Dsonar.login=$SONAR_TOKEN
+                        '''
                     }
                 }
             }
@@ -57,10 +55,12 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dockercredentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
-                        sh "docker tag ${DOCKER_IMAGE}:latest ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                        sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                        sh "docker logout"
+                        sh '''
+                            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                            docker tag "$DOCKER_IMAGE:latest" "$DOCKER_IMAGE:$DOCKER_TAG"
+                            docker push "$DOCKER_IMAGE:$DOCKER_TAG"
+                            docker logout
+                        '''
                     }
                 }
             }
@@ -71,13 +71,13 @@ pipeline {
                 echo '📦 Déploiement du livrable sur Nexus...'
                 script {
                     withCredentials([usernamePassword(credentialsId: 'nexus', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
-                        sh """
+                        sh '''
                             mvn deploy -X \
-                                -DaltDeploymentRepository=nexus::default::${NEXUS_URL} \
-                                -Dnexus.username=${NEXUS_USER} \
-                                -Dnexus.password=${NEXUS_PASSWORD} \
+                                -DaltDeploymentRepository=nexus::default::$NEXUS_URL \
+                                -Dnexus.username=$NEXUS_USER \
+                                -Dnexus.password=$NEXUS_PASSWORD \
                                 -DskipTests
-                        """
+                        '''
                     }
                 }
             }
