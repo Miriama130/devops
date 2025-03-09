@@ -1,6 +1,6 @@
 package tn.esprit.spring.services.Universite;
 
-import tn.esprit.spring.dao.entities.Universite;
+import tn.esprit.spring.DAO.Entities.Universite;
 
 import java.util.List;
 

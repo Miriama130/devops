@@ -3,14 +3,14 @@ package tn.esprit.spring.services.Chambre;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.stereotype.Service;
-import tn.esprit.spring.dao.entities.Bloc;
-import tn.esprit.spring.dao.entities.Chambre;
-import tn.esprit.spring.dao.entities.Reservation;
-import tn.esprit.spring.dao.entities.TypeChambre;
-import tn.esprit.spring.dao.repositories.BlocRepository;
-import tn.esprit.spring.dao.repositories.ChambreRepository;
+import tn.esprit.spring.DAO.Entities.Bloc;
+import tn.esprit.spring.DAO.Entities.Chambre;
+import tn.esprit.spring.DAO.Entities.Reservation;
+import tn.esprit.spring.DAO.Entities.TypeChambre;
+import tn.esprit.spring.DAO.Repositories.BlocRepository;
+import tn.esprit.spring.DAO.Repositories.ChambreRepository;
+
 
 import java.time.LocalDate;
 import java.util.List;

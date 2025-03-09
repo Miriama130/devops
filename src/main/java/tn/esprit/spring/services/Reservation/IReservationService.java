@@ -1,6 +1,6 @@
 package tn.esprit.spring.services.Reservation;
 
-import tn.esprit.spring.dao.entities.Reservation;
+import tn.esprit.spring.DAO.Entities.Reservation;
 
 import java.time.LocalDate;
 import java.util.List;

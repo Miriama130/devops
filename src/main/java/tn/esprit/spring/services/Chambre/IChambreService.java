@@ -1,9 +1,8 @@
 package tn.esprit.spring.services.Chambre;
 
-import tn.esprit.spring.dao.entities.Chambre;
-import tn.esprit.spring.dao.entities.TypeChambre;
+import tn.esprit.spring.DAO.Entities.Chambre;
+import tn.esprit.spring.DAO.Entities.TypeChambre;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public interface IChambreService {

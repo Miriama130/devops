@@ -1,6 +1,6 @@
 package tn.esprit.spring.services.Bloc;
 
-import tn.esprit.spring.dao.entities.Bloc;
+import tn.esprit.spring.DAO.Entities.Bloc;
 
 import java.util.List;
 
