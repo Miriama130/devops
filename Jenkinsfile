@@ -66,18 +66,26 @@ pipeline {
             }
         }
 
-    withCredentials([usernamePassword(credentialsId: 'nexus', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
-    // Utilisation des variables NEXUS_USER et NEXUS_PASSWORD de manière sécurisée
-    sh '''
-        mvn deploy -X \
-            -DaltDeploymentRepository=nexus::default::$NEXUS_URL \
-            -Dnexus.username=$NEXUS_USER \
-            -Dnexus.password=$NEXUS_PASSWORD \
-            -DskipTests
-    '''
-}
+        stage('Déploiement sur Nexus') {
+            steps {
+                echo '📦 Déploiement du livrable sur Nexus...'
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'nexus', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
+                        // Vérification de l'artefact avant le déploiement
+                        sh 'ls -la target'
 
-
+                        // Déploiement Maven sur Nexus
+                        sh '''
+                            mvn deploy -X \
+                                -DaltDeploymentRepository=nexus::default::$NEXUS_URL \
+                                -Dnexus.username=$NEXUS_USER \
+                                -Dnexus.password=$NEXUS_PASSWORD \
+                                -DskipTests
+                        '''
+                    }
+                }
+            }
+        }
 
         stage('Archive artifacts') {
             steps {
