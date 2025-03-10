@@ -66,41 +66,17 @@ pipeline {
             }
         }
 
-     stage('Déploiement sur Nexus') {
-    steps {
-        echo '📦 Déploiement du livrable sur Nexus...'
-        script {
-            // Utiliser withCredentials pour récupérer les informations Nexus de manière sécurisée
-            withCredentials([usernamePassword(credentialsId: 'nexus', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
-                // Vérification de l'artefact avant le déploiement
-                sh 'ls -la target'
-
-                // Crée le fichier settings.xml avec les credentials Nexus
-                writeFile file: "$HOME/.m2/settings.xml", text: """
-                    <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
-                        <servers>
-                            <server>
-                                <id>nexus</id>
-                                <username>${NEXUS_USER}</username>
-                                <password>${NEXUS_PASSWORD}</password>
-                            </server>
-                        </servers>
-                    </settings>
-                """
-
-                // Déploiement Maven sur Nexus
-                sh '''
-                    mvn deploy -X \
-                        -DaltDeploymentRepository=nexus::default::${NEXUS_URL} \
-                        -DskipTests \
-                        -s $HOME/.m2/settings.xml
-                '''
-            }
-        }
-    }
+    withCredentials([usernamePassword(credentialsId: 'nexus', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
+    // Utilisation des variables NEXUS_USER et NEXUS_PASSWORD de manière sécurisée
+    sh '''
+        mvn deploy -X \
+            -DaltDeploymentRepository=nexus::default::$NEXUS_URL \
+            -Dnexus.username=$NEXUS_USER \
+            -Dnexus.password=$NEXUS_PASSWORD \
+            -DskipTests
+    '''
 }
+
 
 
         stage('Archive artifacts') {
