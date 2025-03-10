@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        SONARQUBE_URL = 'http://localhost:9050/'  
+        SONARQUBE_URL = 'http://localhost:9000/'  
         SONARQUBE_TOKEN = credentials('jenkins-sonar')  
     }
    
