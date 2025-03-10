@@ -66,11 +66,11 @@ pipeline {
             }
         }
 
-       stage('Déploiement sur Nexus') {
+     stage('Déploiement sur Nexus') {
     steps {
         echo '📦 Déploiement du livrable sur Nexus...'
         script {
-            // Utiliser withCredentials pour récupérer les informations Nexus
+            // Utiliser withCredentials pour récupérer les informations Nexus de manière sécurisée
             withCredentials([usernamePassword(credentialsId: 'nexus', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
                 // Vérification de l'artefact avant le déploiement
                 sh 'ls -la target'
@@ -101,6 +101,7 @@ pipeline {
         }
     }
 }
+
 
         stage('Archive artifacts') {
             steps {
