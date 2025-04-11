@@ -92,40 +92,40 @@ pipeline {
             }
         }
 
-        stage("Deploy Artifact to Nexus") {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'NEXUS_CREDENTIALS', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
-                        sh '''
-                            set -e
-                            VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-                            ARTIFACT_NAME=Foyer-${VERSION}.jar
+        // stage("Deploy Artifact to Nexus") {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(credentialsId: 'NEXUS_CREDENTIALS', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
+        //                 sh '''
+        //                     set -e
+        //                     VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        //                     ARTIFACT_NAME=Foyer-${VERSION}.jar
 
-                            if [ ! -f "target/${ARTIFACT_NAME}" ]; then
-                                echo "ERROR: Artifact ${ARTIFACT_NAME} not found!"
-                                exit 1
-                            fi
+        //                     if [ ! -f "target/${ARTIFACT_NAME}" ]; then
+        //                         echo "ERROR: Artifact ${ARTIFACT_NAME} not found!"
+        //                         exit 1
+        //                     fi
 
-                            mvn deploy:deploy-file \
-                                -Durl=${NEXUS_URL}/repository/${NEXUS_REPO}/ \
-                                -DrepositoryId=nexus \
-                                -Dfile=target/${ARTIFACT_NAME} \
-                                -DgroupId=tn.esprit.spring \
-                                -DartifactId=Foyer \
-                                -Dversion=${VERSION} \
-                                -Dpackaging=jar \
-                                -DgeneratePom=true
-                        '''
-                    }
-                }
-            }
-        }
+        //                     mvn deploy:deploy-file \
+        //                         -Durl=${NEXUS_URL}/repository/${NEXUS_REPO}/ \
+        //                         -DrepositoryId=nexus \
+        //                         -Dfile=target/${ARTIFACT_NAME} \
+        //                         -DgroupId=tn.esprit.spring \
+        //                         -DartifactId=Foyer \
+        //                         -Dversion=${VERSION} \
+        //                         -Dpackaging=jar \
+        //                         -DgeneratePom=true
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('SonarQube Analysis') {
             steps {
                 script {
                     withSonarQubeEnv('SonarQube') {
-                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        withCredentials([string(credentialsId: 'JENKINS-SONAR', variable: 'SONAR_TOKEN')]) {
                             sh '''
                             mvn sonar:sonar \
                                 -Dsonar.projectKey=foyer-app \
