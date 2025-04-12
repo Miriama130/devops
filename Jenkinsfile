@@ -31,6 +31,17 @@ pipeline {
             }
         }
 
+        stage('Code Coverage (JaCoCo)') {
+            steps {
+                sh 'mvn verify' // Triggers JaCoCo report generation
+                jacoco execPattern: '**/target/jacoco.exec',
+                       classPattern: '**/target/classes',
+                       sourcePattern: '**/src/main/java',
+                       inclusionPattern: '**/*.class',
+                       exclusionPattern: '**/*Test*'
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 script {
