@@ -49,36 +49,44 @@ pipeline {
         }
 
         stage('Deploy to Nexus') {
-            steps {
-                script {
-                    // Create settings.xml file with Nexus credentials
-                    withCredentials([usernamePassword(
-                        credentialsId: 'nexus-credentials',
-                        usernameVariable: 'NEXUS_USER',
-                        passwordVariable: 'NEXUS_PASS'
-                    )]) {
-                        sh '''
-                            cat > settings.xml <<EOF
-                            <settings>
-                              <servers>
-                                <server>
-                                  <id>nexus-releases</id>
-                                  <username>${NEXUS_USER}</username>
-                                  <password>${NEXUS_PASS}</password>
-                                </server>
-                              </servers>
-                            </settings>
-                            EOF
-                            
-                            mvn deploy \
-                              -DaltDeploymentRepository=nexus-releases::default::${NEXUS_URL} \
-                              -DrepositoryId=nexus-releases \
-                              -s settings.xml
-                        '''
-                    }
-                }
+    steps {
+        script {
+            // Debug: Show current directory contents
+            sh 'ls -la'
+            
+            // Create settings.xml file with Nexus credentials
+            withCredentials([usernamePassword(
+                credentialsId: 'nexus-credentials',
+                usernameVariable: 'NEXUS_USER',
+                passwordVariable: 'NEXUS_PASS'
+            )]) {
+                sh '''
+                    echo "Creating settings.xml with Nexus credentials"
+                    cat > settings.xml <<EOF
+                    <settings>
+                      <servers>
+                        <server>
+                          <id>nexus-releases</id>
+                          <username>${NEXUS_USER}</username>
+                          <password>${NEXUS_PASS}</password>
+                        </server>
+                      </servers>
+                    </settings>
+                    EOF
+                    
+                    echo "Contents of settings.xml:"
+                    cat settings.xml
+                    
+                    echo "Attempting deployment to Nexus"
+                    mvn deploy \
+                      -DaltDeploymentRepository=nexus-releases::default::${NEXUS_URL} \
+                      -DrepositoryId=nexus-releases \
+                      -s settings.xml
+                '''
             }
         }
+    }
+}
     }
 
     post {
