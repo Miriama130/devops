@@ -115,7 +115,6 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    // Login docker
                     withCredentials([usernamePassword(
                         credentialsId: 'dockerhub-credentials',
                         usernameVariable: 'DOCKERHUB_USER',
@@ -126,9 +125,10 @@ pipeline {
                     
                     sh "docker push ${env.DOCKER_IMAGE_NAME}"
                     
+                    def baseImageName = env.DOCKER_IMAGE_NAME.split(':')[0]
                     sh """
-                        docker tag ${env.DOCKER_IMAGE_NAME} ${env.DOCKER_IMAGE_NAME%%:*}:latest
-                        docker push ${env.DOCKER_IMAGE_NAME%%:*}:latest
+                        docker tag ${env.DOCKER_IMAGE_NAME} ${baseImageName}:latest
+                        docker push ${baseImageName}:latest
                     """
                 }
             }
