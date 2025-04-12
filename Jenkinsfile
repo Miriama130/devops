@@ -1,5 +1,6 @@
 pipeline {
     agent any
+
     environment {
         DOCKER_REGISTRY = 'guesmizaineb'
         IMAGE_NAME = 'foyer-app'
@@ -14,11 +15,9 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                script {
-                    git credentialsId: "${GIT_CREDENTIALS_ID}",
-                        url: 'https://github.com/Miriama130/devops.git',
-                        branch: 'zaineb'
-                }
+                git credentialsId: "${GIT_CREDENTIALS_ID}", 
+                    url: 'https://github.com/Miriama130/devops.git', 
+                    branch: 'zaineb'
             }
         }
 
@@ -63,31 +62,29 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh 'docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} .'
-                }
+                sh "docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} ."
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'ZainebDocker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    script {
-                        sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
-                        sh 'docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
-                    }
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                    '''
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                script {
-                    sh 'docker stop devops-app || true'
-                    sh 'docker rm devops-app || true'
-                    sh 'docker pull ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
-                    sh 'docker run -d -p 8081:8081 --name devops-app ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
-                }
+                sh '''
+                    docker stop devops-app || true
+                    docker rm devops-app || true
+                    docker pull ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                    docker run -d -p 8081:8081 --name devops-app ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                '''
             }
         }
     }
