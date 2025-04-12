@@ -5,6 +5,7 @@ pipeline {
         SONARQUBE_URL = 'http://localhost:9000'  
         SONARQUBE_TOKEN = credentials('sonarqube-token')
         NEXUS_URL = 'http://localhost:8081/repository/maven-releases/'
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials') 
     }
    
     stages {
@@ -33,7 +34,7 @@ pipeline {
 
         stage('Code Coverage (JaCoCo)') {
             steps {
-                sh 'mvn verify' // Triggers JaCoCo report generation
+                sh 'mvn verify' 
                 jacoco execPattern: '**/target/jacoco.exec',
                        classPattern: '**/target/classes',
                        sourcePattern: '**/src/main/java',
@@ -60,44 +61,78 @@ pipeline {
         }
 
         stage('Deploy to Nexus') {
-    steps {
-        script {
-            // Debug: Show current directory contents
-            sh 'ls -la'
-            
-            // Create settings.xml file with Nexus credentials
-            withCredentials([usernamePassword(
-                credentialsId: 'nexus-credentials',
-                usernameVariable: 'NEXUS_USER',
-                passwordVariable: 'NEXUS_PASS'
-            )]) {
-                sh '''
-                    echo "Creating settings.xml with Nexus credentials"
-                    cat > settings.xml <<EOF
-                    <settings>
-                      <servers>
-                        <server>
-                          <id>nexus-releases</id>
-                          <username>${NEXUS_USER}</username>
-                          <password>${NEXUS_PASS}</password>
-                        </server>
-                      </servers>
-                    </settings>
-                    EOF
+            steps {
+                script {
+                    // contenui du dossier
+                    sh 'ls -la'
                     
-                    echo "Contents of settings.xml:"
-                    cat settings.xml
-                    
-                    echo "Attempting deployment to Nexus"
-                    mvn deploy \
-                      -DaltDeploymentRepository=nexus-releases::default::${NEXUS_URL} \
-                      -DrepositoryId=nexus-releases \
-                      -s settings.xml
-                '''
+                    // création settings.xml
+                    withCredentials([usernamePassword(
+                        credentialsId: 'nexus-credentials',
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
+                    )]) {
+                        sh '''
+                            echo "Creating settings.xml with Nexus credentials"
+                            cat > settings.xml <<EOF
+                            <settings>
+                              <servers>
+                                <server>
+                                  <id>nexus-releases</id>
+                                  <username>${NEXUS_USER}</username>
+                                  <password>${NEXUS_PASS}</password>
+                                </server>
+                              </servers>
+                            </settings>
+                            EOF
+                            
+                            echo "Contents of settings.xml:"
+                            cat settings.xml
+                            
+                            echo "Attempting deployment to Nexus"
+                            mvn deploy \
+                              -DaltDeploymentRepository=nexus-releases::default::${NEXUS_URL} \
+                              -DrepositoryId=nexus-releases \
+                              -s settings.xml
+                        '''
+                    }
+                }
             }
         }
-    }
-}
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def imageName = "saraiguess/foyer-app:${env.BUILD_NUMBER}"
+                    
+                    sh "docker build -t ${imageName} ."
+                    
+                    env.DOCKER_IMAGE_NAME = imageName
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    // Login docker
+                    withCredentials([usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKERHUB_USER',
+                        passwordVariable: 'DOCKERHUB_PASS'
+                    )]) {
+                        sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USER} --password-stdin"
+                    }
+                    
+                    sh "docker push ${env.DOCKER_IMAGE_NAME}"
+                    
+                    sh """
+                        docker tag ${env.DOCKER_IMAGE_NAME} ${env.DOCKER_IMAGE_NAME%%:*}:latest
+                        docker push ${env.DOCKER_IMAGE_NAME%%:*}:latest
+                    """
+                }
+            }
+        }
     }
 
     post {
