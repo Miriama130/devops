@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         SONARQUBE_URL = 'http://localhost:9000/'  
-        SONARQUBE_TOKEN = credentials('jenkins-sonar')  
+        SONARQUBE_TOKEN = credentials('sonarqube-token')  
     }
    
     stages {
