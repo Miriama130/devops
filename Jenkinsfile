@@ -2,10 +2,12 @@ pipeline {
     agent any
 
     environment {
+        // Docker configuration
         DOCKER_REGISTRY = 'guesmizaineb'
         IMAGE_NAME = 'foyer-app'
         IMAGE_TAG = "latest"
 
+        // SonarQube configuration
         SONAR_HOST_URL = 'http://172.19.129.224:9000'
         SONAR_PROJECT_KEY = 'foyer-app'
     }
@@ -18,6 +20,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
+                    // Git credentials will be handled by Jenkins credentials binding
                     checkout([
                         $class: 'GitSCM',
                         branches: [[name: '*/adam']],
@@ -44,18 +47,14 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                script {
-                    def mvn = tool 'Default Maven'
-                    withSonarQubeEnv('My SonarQube Server') {
-                        withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
-                            sh """
-                                ${mvn}/bin/mvn clean verify sonar:sonar \
-                                -Dsonar.projectKey=foyer-app \
-                                -Dsonar.projectName='foyer-app' \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.login=$SONAR_TOKEN
-                            """
-                        }
+                withSonarQubeEnv('SonarQube') {
+                    script {
+                        // SonarQube token will be injected by Jenkins
+                        sh """
+                            mvn sonar:sonar \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.host.url=${SONAR_HOST_URL}
+                        """
                     }
                 }
             }
@@ -84,8 +83,8 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
+                    // Docker credentials will be injected by Jenkins
                     withCredentials([usernamePassword(
-                        credentialsId: 'DOCKER_HUB_CREDENTIALS',  // Replace this with your actual credentialsId
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                     )]) {
