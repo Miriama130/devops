@@ -47,18 +47,26 @@ pipeline {
 
        stage('SonarQube Analysis') {
            steps {
-               withSonarQubeEnv('SonarQube') {
+               withSonarQubeEnv('SonarQube') { // This automatically sets the SonarQube environment variables
                    withCredentials([usernamePassword(credentialsId: 'devo', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
-                       sh """
-                           mvn sonar:sonar \
-                           -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                           -Dsonar.host.url=${SONAR_HOST_URL} \
-                           -Dsonar.login=$SONAR_TOKEN
-                       """
+                       script {
+                           // Using environment variables and improving clarity
+                           def projectKey = "${SONAR_PROJECT_KEY}"
+                           def hostUrl = "${SONAR_HOST_URL}"
+                           def sonarToken = "$SONAR_TOKEN"
+
+                           sh """
+                               mvn clean verify sonar:sonar \
+                               -Dsonar.projectKey=$projectKey \
+                               -Dsonar.host.url=$hostUrl \
+                               -Dsonar.login=$sonarToken
+                           """
+                       }
                    }
                }
            }
        }
+
 
 
         stage('Build Application') {
