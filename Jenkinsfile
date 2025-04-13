@@ -23,7 +23,7 @@ pipeline {
                     // Git credentials will be handled by Jenkins credentials binding
                     checkout([
                         $class: 'GitSCM',
-                        branches: [[name: '*/zaineb']],
+                        branches: [[name: '*/adam']],
                         extensions: [],
                         userRemoteConfigs: [[
                             url: 'https://github.com/Miriama130/devops.git'
