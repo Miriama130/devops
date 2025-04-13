@@ -44,30 +44,20 @@ pipeline {
                 sh 'mvn compile'
             }
         }
-
-      stage('SonarQube Analysis') {
-          steps {
-              withSonarQubeEnv('SonarQube') {
-                  withCredentials([usernamePassword(credentialsId: 'devo', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
-                      script {
-                          // Setting up the variables for projectKey, hostUrl, and sonarToken
-                          def projectKey = "${SONAR_PROJECT_KEY}"
-                          def hostUrl = "${SONAR_HOST_URL}"
-                          def sonarToken = "$SONAR_TOKEN"
-
-                          // Running Maven with debug flag (-X) for more information
-                          sh """
-                              mvn clean verify sonar:sonar -X \
-                              -Dsonar.projectKey=$projectKey \
-                              -Dsonar.host.url=$hostUrl \
-                              -Dsonar.login=$sonarToken
-                          """
-                      }
-                  }
-              }
-          }
-      }
-
+stage('SonarQube Analysis') {
+    steps {
+        withSonarQubeEnv('SonarQube') {
+            withCredentials([usernamePassword(credentialsId: 'devo', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
+                sh """
+                    mvn sonar:sonar \
+                    -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                    -Dsonar.host.url=${SONAR_HOST_URL} \
+                    -Dsonar.login=$SONAR_TOKEN
+                """
+            }
+        }
+    }
+}
 
 
         stage('Build Application') {
