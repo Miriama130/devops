@@ -1,56 +1,29 @@
 pipeline {
     agent any
-    
     environment {
-        SONARQUBE_URL = 'http://localhost:9000/'  
-        SONARQUBE_TOKEN = credentials('jenkins-sonar')  
+        DOCKER_IMAGE = 'miriama13/foyer-app'
+        DOCKER_TAG = 'v1'
+        SONARQUBE_URL = 'http://172.20.99.98:9000/'
     }
-   
     stages {
         stage('Checkout SCM') {
             steps {
-                checkout scm
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: 'refs/heads/zaineb']],
+                    extensions: [],
+                    userRemoteConfigs: [[
+                        credentialsId: 'vv',
+                        url: 'https://github.com/Miriama130/devops.git'
+                    ]]
+                ])
             }
         }
-
-        stage('Clean and Build') {
-            steps {
-                script {
-                    sh 'mvn clean install'
-                }
-            }
-        }
-
-        stage('Tests Unitaires') {
-            steps {
-                script {
-                    sh 'mvn test'  // Run unit tests
-                }
-            }
-        }
-
-        stage('SonarQube Analysis') {
-        steps {
-            echo '🔍 Analyse du code avec SonarQube...'
-                script {
-                    sh """
-                        mvn sonar:sonar\
-                            -Dsonar.host.url=${SONARQUBE_URL} \
-                            -Dsonar.login=${SONARQUBE_TOKEN} 
-                    """
-                }
-            }
-        }
-
-
+        // Add other stages (Build, Test, SonarQube, etc.)
     }
-
     post {
-        success {
-            echo 'Build and clean completed successfully!'
-        }
         failure {
-            echo 'There was an error in the build process.'
+            echo "❌ Pipeline failed! Check the logs."
         }
     }
 }
