@@ -46,11 +46,21 @@ pipeline {
         }
 
             stage('SonarQube Analysis') {
-               def mvn = tool 'Default Maven';
-               withSonarQubeEnv() {
-                 sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=devo -Dsonar.projectName='devo'"
-               }
-             }
+                      steps {
+                          script {
+                              def mvn = tool 'Default Maven'
+                              withSonarQubeEnv('My SonarQube Server') {
+                                  withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+                                      sh """
+                                          ${mvn}/bin/mvn clean verify sonar:sonar \
+                                          -Dsonar.projectKey=foyer-app \
+                                          -Dsonar.projectName='foyer-app' \
+                                          -Dsonar.host.url=${SONAR_HOST_URL} \
+                                          -Dsonar.login=$SONAR_TOKEN
+                                      """
+                                  }
+                              }
+                          }
 
         stage('Build Application') {
             steps {
