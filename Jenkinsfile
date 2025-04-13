@@ -45,20 +45,21 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    script {
-                        // SonarQube token will be injected by Jenkins
-                        sh """
-                            mvn sonar:sonar \
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                            -Dsonar.host.url=${SONAR_HOST_URL}
-                        """
-                    }
-                }
-            }
-        }
+       stage('SonarQube Analysis') {
+           steps {
+               withSonarQubeEnv('SonarQube') {
+                   withCredentials([usernamePassword(credentialsId: 'devo', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
+                       sh """
+                           mvn sonar:sonar \
+                           -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                           -Dsonar.host.url=${SONAR_HOST_URL} \
+                           -Dsonar.login=$SONAR_TOKEN
+                       """
+                   }
+               }
+           }
+       }
+
 
         stage('Build Application') {
             steps {
