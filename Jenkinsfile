@@ -45,20 +45,16 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    script {
-                        // SonarQube token will be injected by Jenkins
-                        sh """
-                            mvn sonar:sonar \
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                            -Dsonar.host.url=${SONAR_HOST_URL}
-                        """
-                    }
-                }
-            }
-        }
+          stage('SonarQube Analysis') {
+                   steps {
+                       script {
+                           def scannerHome = tool 'scanner'
+                           withSonarQubeEnv() { // Ensure 'SonarQube' matches Jenkins configuration
+                               sh "${scannerHome}/bin/sonar-scanner"
+                           }
+                       }
+                   }
+               }
 
         stage('Build Application') {
             steps {
