@@ -45,27 +45,28 @@ pipeline {
             }
         }
 
-       stage('SonarQube Analysis') {
-           steps {
-               withSonarQubeEnv('SonarQube') { // This automatically sets the SonarQube environment variables
-                   withCredentials([usernamePassword(credentialsId: 'devo', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
-                       script {
-                           // Using environment variables and improving clarity
-                           def projectKey = "${SONAR_PROJECT_KEY}"
-                           def hostUrl = "${SONAR_HOST_URL}"
-                           def sonarToken = "$SONAR_TOKEN"
+      stage('SonarQube Analysis') {
+          steps {
+              withSonarQubeEnv('SonarQube') {
+                  withCredentials([usernamePassword(credentialsId: 'devo', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
+                      script {
+                          // Setting up the variables for projectKey, hostUrl, and sonarToken
+                          def projectKey = "${SONAR_PROJECT_KEY}"
+                          def hostUrl = "${SONAR_HOST_URL}"
+                          def sonarToken = "$SONAR_TOKEN"
 
-                           sh """
-                               mvn clean verify sonar:sonar \
-                               -Dsonar.projectKey=$projectKey \
-                               -Dsonar.host.url=$hostUrl \
-                               -Dsonar.login=$sonarToken
-                           """
-                       }
-                   }
-               }
-           }
-       }
+                          // Running Maven with debug flag (-X) for more information
+                          sh """
+                              mvn clean verify sonar:sonar -X \
+                              -Dsonar.projectKey=$projectKey \
+                              -Dsonar.host.url=$hostUrl \
+                              -Dsonar.login=$sonarToken
+                          """
+                      }
+                  }
+              }
+          }
+      }
 
 
 
