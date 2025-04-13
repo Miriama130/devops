@@ -45,16 +45,12 @@ pipeline {
             }
         }
 
-          stage('SonarQube Analysis') {
-                   steps {
-                       script {
-                           def scannerHome = tool 'scanner'
-                           withSonarQubeEnv() { // Ensure 'SonarQube' matches Jenkins configuration
-                               sh "${scannerHome}/bin/sonar-scanner"
-                           }
-                       }
-                   }
+            stage('SonarQube Analysis') {
+               def mvn = tool 'Default Maven';
+               withSonarQubeEnv() {
+                 sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=devo -Dsonar.projectName='devo'"
                }
+             }
 
         stage('Build Application') {
             steps {
