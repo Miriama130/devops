@@ -8,7 +8,7 @@ WORKDIR /app
 COPY target/Foyer-0.0.1-SNAPSHOT.jar app.jar
 
 # Exposer le port sur lequel l'application écoute
-EXPOSE 8081
+EXPOSE 8084
 
 # Définir la commande pour exécuter l'application
 ENTRYPOINT ["java", "-jar", "app.jar"]

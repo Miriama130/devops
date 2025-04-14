@@ -49,10 +49,11 @@ stage('SonarQube Analysis') {
         withSonarQubeEnv('SonarQube') {
             withCredentials([usernamePassword(credentialsId: 'devo', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
                 sh """
-                    mvn sonar:sonar \
-                    -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                    -Dsonar.host.url=${SONAR_HOST_URL} \
-                    -Dsonar.login=$SONAR_TOKEN
+                    mvn clean verify sonar:sonar \
+                      -Dsonar.projectKey=devops \
+                      -Dsonar.projectName='devops' \
+                      -Dsonar.host.url=http://172.17.102.63:9000 \
+                      -Dsonar.token=sqp_3992bf77af0ed8c1bd1035f0b445ddf40acb2af5
                 """
             }
         }
