@@ -8,8 +8,9 @@ pipeline {
         IMAGE_TAG = "latest"
 
         // SonarQube configuration
-        SONAR_HOST_URL = 'http://172.19.129.224:9000'
-        SONAR_PROJECT_KEY = 'foyer-app'
+        SONAR_HOST_URL = 'http://172.17.102.63:9000'
+        SONAR_PROJECT_KEY = 'devops'
+        SONAR_PROJECT_NAME = 'devops'
     }
 
     triggers {
@@ -20,7 +21,6 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    // Git credentials will be handled by Jenkins credentials binding
                     checkout([
                         $class: 'GitSCM',
                         branches: [[name: '*/adam']],
@@ -44,22 +44,22 @@ pipeline {
                 sh 'mvn compile'
             }
         }
-stage('SonarQube Analysis') {
-    steps {
-        withSonarQubeEnv('SonarQube') {
-            withCredentials([usernamePassword(credentialsId: 'devo', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
-                sh """
-                    mvn clean verify sonar:sonar \
-                      -Dsonar.projectKey=devops \
-                      -Dsonar.projectName='devops' \
-                      -Dsonar.host.url=http://172.17.102.63:9000 \
-                      -Dsonar.token=sqp_3992bf77af0ed8c1bd1035f0b445ddf40acb2af5
-                """
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        sh """
+                            mvn sonar:sonar \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                            -Dsonar.host.url=${SONAR_HOST_URL} \
+                            -Dsonar.login=${SONAR_TOKEN}
+                        """
+                    }
+                }
             }
         }
-    }
-}
-
 
         stage('Build Application') {
             steps {
@@ -84,7 +84,6 @@ stage('SonarQube Analysis') {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    // Docker credentials will be injected by Jenkins
                     withCredentials([usernamePassword(
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
