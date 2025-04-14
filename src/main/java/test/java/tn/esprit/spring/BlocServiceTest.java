@@ -37,15 +37,14 @@ class BlocServiceTest {
     private BlocService blocService;
 
     private Bloc bloc;
-    private Chambre chambre1, chambre2;
 
     @BeforeEach
     void setUp() {
         bloc = new Bloc();
         bloc.setNomBloc("Bloc A");
-        chambre1 = new Chambre();
+        Chambre chambre1 = new Chambre();
         chambre1.setNumeroChambre(101L);
-        chambre2 = new Chambre();
+        Chambre chambre2 = new Chambre();
         chambre2.setNumeroChambre(102L);
         bloc.setChambres(Arrays.asList(chambre1, chambre2));
     }
