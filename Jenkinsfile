@@ -9,8 +9,7 @@ pipeline {
 
         // SonarQube configuration
         SONAR_HOST_URL = 'http://172.17.102.63:9000'
-        SONAR_PROJECT_KEY = 'devops'
-        SONAR_PROJECT_NAME = 'devops'
+        SONARQUBE_TOKEN = credentials('devops')
     }
 
     triggers {
@@ -45,21 +44,22 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                        sh """
-                            mvn sonar:sonar \
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \
-                            -Dsonar.host.url=${SONAR_HOST_URL} \
-                            -Dsonar.login=${SONAR_TOKEN}
-                        """
-                    }
-                }
-            }
-        }
+          stage('SonarQube Analysis') {
+                   steps {
+                       script {
+                           withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                               sh """
+                                   mvn sonar:sonar \
+                                   -Dsonar.projectKey=FoyerApp \
+                                   -Dsonar.host.url=${SONARQUBE_URL} \
+                                   -Dsonar.login=${SONAR_TOKEN} \
+                                   -Dsonar.java.binaries=target/classes \
+                                   -Dsonar.sourceEncoding=UTF-8
+                               """
+                           }
+                       }
+                   }
+               }
 
         stage('Build Application') {
             steps {
