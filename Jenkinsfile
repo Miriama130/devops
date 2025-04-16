@@ -117,54 +117,47 @@ pipeline {
             }
         }
 
-        
-
         stage('Prepare Ports') {
-    steps {
-        script {
-            // Just ensure no containers are using the ports
-            sh 'docker-compose -f docker-compose.yml down || true'
-            
-            // Clean up any existing volumes if needed
-            sh 'docker volume rm dockerimage_mysql_data || true'
+            steps {
+                script {
+                    // Just ensure no containers are using the ports
+                    sh 'docker-compose -f docker-compose.yml down || true'
+                    
+                    // Clean up any existing volumes if needed
+                    sh 'docker volume rm dockerimage_mysql_data || true'
+                }
+            }
         }
-    }
-}
 
-stage('Deploy Application') {
-    steps {
-        script {
-            try {
-                // Start containers with force recreation
-                sh 'docker-compose -f docker-compose.yml up -d --force-recreate'
-                
-                // Wait for MySQL healthcheck
-                sh '''
-                    timeout 180 bash -c 'while [[ "$(docker inspect -f \'{{.State.Health.Status}}\' mysql-container)" != "healthy" ]]; do 
-                        sleep 10; 
-                        echo "Waiting for MySQL to become healthy..."; 
-                        docker logs mysql-container || true
-                    done'
-                '''
-                
-                // Check application
-                sh 'curl -s --retry 5 --retry-delay 10 http://localhost:8082/Foyer/actuator/health'
-            } catch (err) {
-                echo "Deployment failed, showing logs:"
-                sh 'docker-compose logs'
-                error("Deployment failed: ${err}")
+        stage('Deploy Application') {
+            steps {
+                script {
+                    try {
+                        // Start containers with force recreation
+                        sh 'docker-compose -f docker-compose.yml up -d --force-recreate'
+                        
+                        // Wait for MySQL healthcheck
+                        sh '''
+                            timeout 180 bash -c 'while [[ "$(docker inspect -f \'{{.State.Health.Status}}\' mysql-container)" != "healthy" ]]; do 
+                                sleep 10; 
+                                echo "Waiting for MySQL to become healthy..."; 
+                                docker logs mysql-container || true
+                            done'
+                        '''
+                        
+                        // Check application
+                        sh 'curl -s --retry 5 --retry-delay 10 http://localhost:8082/Foyer/actuator/health'
+                    } catch (err) {
+                        echo "Deployment failed, showing logs:"
+                        sh 'docker-compose logs'
+                        error("Deployment failed: ${err}")
+                    }
+                }
             }
         }
     }
-}
 
     post {
-        always {
-            script {
-                // Restart MySQL if we stopped it
-                sh 'sudo systemctl start mysql || true'
-            }
-        }
         success {
             echo "Pipeline executed successfully!"
             echo "Artifacts deployed to Nexus: ${NEXUS_URL}"
