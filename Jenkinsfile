@@ -55,23 +55,26 @@ pipeline {
         }
 
         stage('Deploy to Nexus') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(
-                        credentialsId: 'nexus',
-                        usernameVariable: 'NEXUS_USER',
-                        passwordVariable: 'NEXUS_PASS'
-                    )]) {
-                        sh """
-                            mvn deploy \
-                            -DaltDeploymentRepository=nexus-releases::default::${NEXUS_URL} \
-                            -DrepositoryId=nexus-releases \
-                            -s $WORKSPACE/settings.xml
-                        """
-                    }
-                }
+    steps {
+        script {
+            withCredentials([usernamePassword(
+                credentialsId: 'nexus',
+                usernameVariable: 'NEXUS_USER',
+                passwordVariable: 'NEXUS_PASS'
+            )]) {
+                // Make sure settings.xml exists in workspace
+                sh 'ls -la settings.xml || echo "settings.xml not found"'
+                
+                sh """
+                    mvn deploy \
+                    -DaltDeploymentRepository=nexus-releases::default::${NEXUS_URL} \
+                    -DrepositoryId=nexus-releases \
+                    -s settings.xml
+                """
             }
         }
+    }
+}
 
         stage('Build Docker Image') {
             steps {
