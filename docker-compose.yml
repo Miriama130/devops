@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mysql-container:
+    image: mysql:8.0
+    container_name: mysql-container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: mimi
+      MYSQL_DATABASE: foyer
+    ports:
+      - "3306:3306"
+    networks:
+      - foyer-network
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 3
+      timeout: 5s
+
+  spring-app:
+    build: .
+    container_name: spring-foyer
+    restart: always
+    depends_on:
+      mysql-container:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-container:3306/foyer?createDatabaseIfNotExist=true&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: mimi
+    ports:
+      - "8082:8082"
+    networks:
+      - foyer-network
+
+networks:
+  foyer-network:
+    name: foyer-network
+    driver: bridge
+
+volumes:
+  mysql_data:
