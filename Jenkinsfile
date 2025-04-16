@@ -97,8 +97,8 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(
                         credentialsId: 'nex-cred',
-                        usernameVariable: 'NEXUS_USER',
-                        passwordVariable: 'NEXUS_PASS'
+                        usernameVariable: 'admin',
+                        passwordVariable: 'admin123'
                     )]) {
                         // First verify credentials work
                         sh '''
