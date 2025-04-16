@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "onsdachraoui/foyer-app:latest"
         NEXUS_REPO = "maven-releases"  // Remplace par "maven-snapshots" si nécessaire
-        NEXUS_URL = 'http://http://172.18.64.72:8081/repository/maven-snapshots'
+        NEXUS_URL = 'http://172.18.64.72:8081/repository/maven-snapshots'
     }
 
     stages {
@@ -72,18 +72,18 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'DOCKER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh '''
-                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                        docker push $DOCKER_IMAGE
-                        '''
-                    }
-                }
-            }
-        }
+        // stage('Push Docker Image') {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(credentialsId: 'DOCKER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+        //                 sh '''
+        //                 echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+        //                 docker push $DOCKER_IMAGE
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Run Tests with Spring Profile') {
             steps {
