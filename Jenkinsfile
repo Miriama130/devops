@@ -29,9 +29,22 @@ pipeline {
 
         stage('Checkout Code') {
     steps {
-        git branch: 'Mariemtl',
-            credentialsId: 'Token',
-            url: 'https://github.com/Miriama130/devops.git'
+        checkout([
+            $class: 'GitSCM',
+            branches: [[name: 'refs/heads/Mariemtl']],
+            extensions: [
+                [$class: 'CleanBeforeCheckout'],
+                [$class: 'CloneOption', 
+                 shallow: true, 
+                 depth: 1, 
+                 noTags: true,
+                 timeout: 30]
+            ],
+            userRemoteConfigs: [[
+                credentialsId: 'Token',
+                url: 'https://github.com/Miriama130/devops.git'
+            ]]
+        ])
     }
 }
 
