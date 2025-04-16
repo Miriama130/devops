@@ -29,13 +29,12 @@ pipeline {
 
         stage('Checkout Code') {
     steps {
-        sh '''
-            rm -rf *
-            git init
-            git remote add origin https://github.com/Miriama130/devops.git
-            git fetch --depth=1 origin refs/heads/Mariemtl
-            git checkout FETCH_HEAD -b Mariemtl
-        '''
+        withCredentials([string(credentialsId: 'Token', variable: 'GITHUB_TOKEN')]) {
+            sh '''
+                curl -H "Authorization: token $GITHUB_TOKEN" \
+                https://api.github.com/rate_limit
+            '''
+        }
     }
 }
 
