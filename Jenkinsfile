@@ -92,20 +92,26 @@ pipeline {
             }
         }
 
-   stage('Déploiement sur Nexus') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'ons123', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                    sh '''
-                        mvn deploy \
-                        -DrepositoryId=nexus \
-                        -Durl=$NEXUS_URL \
-                        -Dusername=$NEXUS_USER \
-                        -Dpassword=$NEXUS_PASS
-                    '''
-                }
-            }
-        }
-
+   // stage('Déploiement sur Nexus') {
+   //          steps {
+   //              withCredentials([usernamePassword(credentialsId: 'ons123', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+   //                  sh '''
+   //                      mvn deploy \
+   //                      -DrepositoryId=nexus \
+   //                      -Durl=$NEXUS_URL \
+   //                      -Dusername=$NEXUS_USER \
+   //                      -Dpassword=$NEXUS_PASS
+   //                  '''
+   //              }
+   //          }
+   //      }
+stage('Déploiement sur Nexus') {
+    steps {
+        sh '''
+            mvn deploy -DrepositoryId=nexus -Durl=$NEXUS_URL
+        '''
+    }
+}
 
         stage('SonarQube Analysis') {
             steps {
