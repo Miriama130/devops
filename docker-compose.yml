@@ -15,10 +15,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      start_period: 30s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pmimi"]
       interval: 10s
-      retries: 3
       timeout: 5s
+      retries: 10
 
   spring-app:
     build: .
@@ -39,8 +40,7 @@ services:
 
 networks:
   foyer-network:
-    name: foyer-network
-    driver: bridge
+    external: true
 
 volumes:
   mysql_data:
