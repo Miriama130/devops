@@ -93,25 +93,33 @@ pipeline {
         }
 
        stage('Deploy to Nexus') {
-    steps {
-        script {
-            withCredentials([usernamePassword(
-                credentialsId: 'nex-cred',  // Make sure this matches your Jenkins credential ID
-                usernameVariable: 'NEXUS_USER',
-                passwordVariable: 'NEXUS_PASS'
-            )]) {
-                sh """
-                mvn deploy \
-                    -DrepositoryId=nexus \
-                    -Durl=http://172.18.64.72:8081/repository/maven-snapshots \
-                    -Dusername=${NEXUS_USER} \
-                    -Dpassword=${NEXUS_PASS} \
-                    -DskipTests=true
-                """
+            steps {
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'nex-cred',
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
+                    )]) {
+                        // First verify credentials work
+                        sh '''
+                        if ! curl -s -u $NEXUS_USER:$NEXUS_PASS $NEXUS_URL >/dev/null; then
+                            echo "ERROR: Nexus credentials verification failed!"
+                            exit 1
+                        fi
+                        '''
+                        // Then deploy
+                        sh '''
+                        mvn deploy \
+                            -DrepositoryId=nexus \
+                            -Durl=$NEXUS_URL \
+                            -Dusername=$NEXUS_USER \
+                            -Dpassword=$NEXUS_PASS \
+                            -DskipTests=true
+                        '''
+                    }
+                }
             }
         }
-    }
-}
 
         stage('SonarQube Analysis') {
             steps {
