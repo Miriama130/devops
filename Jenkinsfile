@@ -17,7 +17,7 @@ pipeline {
                         branches: [[name: 'ons']],
                         userRemoteConfigs: [[
                             url: 'https://github.com/Miriama130/devops.git',
-                            credentialsId: 'Onsgit'
+                            credentialsId: 'nsgit'
                         ]]
                     ])
                 }
