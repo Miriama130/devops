@@ -28,12 +28,16 @@ pipeline {
         }
 
         stage('Checkout Code') {
-            steps {
-                git branch: 'Mariemtl',
-                    credentialsId: 'Token',
-                    url: 'https://github.com/Miriama130/devops.git'
-            }
-        }
+    steps {
+        sh '''
+            rm -rf *
+            git init
+            git remote add origin https://github.com/Miriama130/devops.git
+            git fetch --depth=1 origin refs/heads/Mariemtl
+            git checkout FETCH_HEAD -b Mariemtl
+        '''
+    }
+}
 
 
         stage('Build & Test') {
