@@ -117,56 +117,46 @@ pipeline {
             }
         }
 
-        stage('Prepare Ports') {
-            steps {
-                script {
-                    // Check if MySQL is running on host
-                    def mysqlRunning = sh(script: 'sudo lsof -i :3306 || true', returnStatus: true)
-                    
-                    if (mysqlRunning == 0) {
-                        echo "MySQL is running on host, stopping it temporarily..."
-                        sh 'sudo systemctl stop mysql || true'
-                        sh 'sudo pkill -f mysqld || true'
-                    } else {
-                        echo "No MySQL running on host, proceeding..."
-                    }
-                    
-                    // Ensure no lingering containers using the port
-                    sh 'docker-compose -f docker-compose.yml down || true'
-                }
-            }
-        }
+        
 
-        stage('Deploy Application') {
-            steps {
-                script {
-                    try {
-                        // Start containers
-                        sh 'docker-compose -f docker-compose.yml up -d'
-                        
-                        // Wait for MySQL to become healthy
-                        sh '''
-                            timeout 180 bash -c 'while [[ "$(docker inspect -f \'{{.State.Health.Status}}\' mysql-container)" != "healthy" ]]; do 
-                                sleep 10; 
-                                echo "Waiting for MySQL to become healthy..."; 
-                            done'
-                        '''
-                        
-                        // Check application health
-                        sh '''
-                            echo "Checking application health..."
-                            curl -s --retry 5 --retry-delay 10 http://localhost:8082/Foyer/actuator/health
-                            echo "Application should be available at: http://172.20.99.98:8082/Foyer"
-                        '''
-                    } catch (err) {
-                        echo "Deployment failed, showing logs:"
-                        sh 'docker-compose logs'
-                        error("Deployment failed: ${err}")
-                    }
-                }
+        stage('Prepare Ports') {
+    steps {
+        script {
+            // Just ensure no containers are using the ports
+            sh 'docker-compose -f docker-compose.yml down || true'
+            
+            // Clean up any existing volumes if needed
+            sh 'docker volume rm dockerimage_mysql_data || true'
+        }
+    }
+}
+
+stage('Deploy Application') {
+    steps {
+        script {
+            try {
+                // Start containers with force recreation
+                sh 'docker-compose -f docker-compose.yml up -d --force-recreate'
+                
+                // Wait for MySQL healthcheck
+                sh '''
+                    timeout 180 bash -c 'while [[ "$(docker inspect -f \'{{.State.Health.Status}}\' mysql-container)" != "healthy" ]]; do 
+                        sleep 10; 
+                        echo "Waiting for MySQL to become healthy..."; 
+                        docker logs mysql-container || true
+                    done'
+                '''
+                
+                // Check application
+                sh 'curl -s --retry 5 --retry-delay 10 http://localhost:8082/Foyer/actuator/health'
+            } catch (err) {
+                echo "Deployment failed, showing logs:"
+                sh 'docker-compose logs'
+                error("Deployment failed: ${err}")
             }
         }
     }
+}
 
     post {
         always {
