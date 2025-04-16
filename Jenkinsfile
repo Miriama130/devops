@@ -3,86 +3,122 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'miriama13/foyer-app'
-        DOCKER_TAG = 'v1'
-        SONARQUBE_URL = 'http://172.20.99.98:9000/'
+        DOCKER_TAG = 'latest'
+        SONARQUBE_URL = 'http://172.20.99.98:9000'
         NEXUS_URL = 'http://172.20.99.98:8081/repository/maven-releases/'
+        ARTIFACT_VERSION = '0.0.1'
+        ARTIFACT_NAME = 'Foyer'
+        ARTIFACT_PATH = "tn/esprit/spring/${ARTIFACT_NAME}/${ARTIFACT_VERSION}/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar"
     }
 
     stages {
-        stage('Checkout SCM') {
+        stage('Clean Docker Environment') {
             steps {
-                checkout scm
+                sh '''
+                    # Clean up application containers if they exist
+                    docker-compose -f docker-compose.yml down || true
+                    
+                    # Remove specific containers by name if they still exist
+                    docker rm -f spring-foyer mysql-container || true
+                    
+                    # Remove old images
+                    docker rmi -f ${DOCKER_IMAGE}:${DOCKER_TAG} || true
+                '''
             }
         }
 
-        stage('Nettoyage du projet') {
+        stage('Checkout Code') {
             steps {
-                echo '🧹 Nettoyage des fichiers temporaires...'
-                sh 'mvn clean'
+                git branch: 'Mariemtl',
+                    credentialsId: 'Token',
+                    url: 'https://github.com/Miriama130/devops.git'
             }
         }
 
-        stage('Compilation & Tests') {
+        stage('Build & Test') {
             steps {
-                echo '🔬 Compilation et exécution des tests...'
-                sh 'mvn test'
+                sh 'mvn clean package'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                echo '🔍 Analyse du code avec SonarQube...'
+                withCredentials([string(credentialsId: 'sonarqubetoken', variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                        mvn sonar:sonar \
+                        -Dsonar.projectKey=FoyerApp \
+                        -Dsonar.host.url=${SONARQUBE_URL} \
+                        -Dsonar.login=${SONAR_TOKEN}
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Nexus') {
+            steps {
                 script {
-                    withCredentials([string(credentialsId: 'sonarqubetoken', variable: 'SONAR_TOKEN')]) {
-                        sh '''
-                            mvn sonar:sonar \
-                                -Dsonar.host.url=$SONARQUBE_URL \
-                                -Dsonar.login=$SONAR_TOKEN
-                        '''
+                    withCredentials([usernamePassword(
+                        credentialsId: 'nexus',
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
+                    )]) {
+                        sh """
+                            mvn deploy \
+                            -DaltDeploymentRepository=nexus-releases::default::${NEXUS_URL} \
+                            -DrepositoryId=nexus-releases \
+                            -s $WORKSPACE/settings.xml
+                        """
                     }
                 }
             }
         }
 
-        stage('Construction du livrable') {
+        stage('Build Docker Image') {
             steps {
-                echo '🔨 Construction du livrable sans exécuter les tests...'
-                sh 'mvn package -DskipTests'
+                script {
+                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                    sh 'docker images | grep ${DOCKER_IMAGE}'
+                }
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dockercredentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh '''
-                            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-                            docker tag "$DOCKER_IMAGE:latest" "$DOCKER_IMAGE:$DOCKER_TAG"
-                            docker push "$DOCKER_IMAGE:$DOCKER_TAG"
-                            docker logout
-                        '''
-                    }
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockercredentials', 
+                    usernameVariable: 'DOCKER_USERNAME', 
+                    passwordVariable: 'DOCKER_PASSWORD'  
+                )]) {
+                    sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+                    sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    sh "docker logout"
                 }
             }
         }
 
-      
-
-        stage('Archive artifacts') {
+        stage('Deploy Application') {
             steps {
-                echo '📦 Archivage du livrable...'
-                sh 'ls -la target'  // Liste les fichiers dans le répertoire target
-                archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
+                sh 'docker-compose -f docker-compose.yml up -d'
+                sh 'sleep 20'
+                
+                // Verify application is running
+                sh """
+                    curl -s http://localhost:8082/Foyer/actuator/health || echo "Health check failed"
+                    echo "Application should be available at: http://172.20.99.98:8082/Foyer"
+                """
             }
         }
     }
 
     post {
         success {
-            echo "🎉 Build, déploiement et nettoyage terminés avec succès!"
+            echo "Pipeline executed successfully!"
+            echo "Artifacts deployed to Nexus: ${NEXUS_URL}"
+            echo "Docker Image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+            echo "Application deployed at: http://172.20.99.98:8082/Foyer"
         }
         failure {
-            echo "❌ Une erreur s'est produite pendant le pipeline."
+            echo "Pipeline failed. Check the logs for errors."
         }
     }
 }
