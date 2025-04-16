@@ -5,6 +5,7 @@ pipeline {
         DOCKER_IMAGE = "onsdachraoui/foyer-app:latest"
         NEXUS_URL = "http://172.18.64.72:8081"
         NEXUS_REPO = "maven-releases"  // Remplace par "maven-snapshots" si nécessaire
+        NEXUS_URL = 'http://http://172.18.64.72:8081/repository/maven-snapshots'
     }
 
     stages {
@@ -92,34 +93,20 @@ pipeline {
             }
         }
 
-        // stage("Deploy Artifact to Nexus") {
-        //     steps {
-        //         script {
-        //             withCredentials([usernamePassword(credentialsId: 'NEXUS_CREDENTIALS', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
-        //                 sh '''
-        //                     set -e
-        //                     VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-        //                     ARTIFACT_NAME=Foyer-${VERSION}.jar
+   stage('Déploiement sur Nexus') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'ons123', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                    sh '''
+                        mvn deploy \
+                        -DrepositoryId=nexus \
+                        -Durl=$NEXUS_URL \
+                        -Dusername=$NEXUS_USER \
+                        -Dpassword=$NEXUS_PASS
+                    '''
+                }
+            }
+        }
 
-        //                     if [ ! -f "target/${ARTIFACT_NAME}" ]; then
-        //                         echo "ERROR: Artifact ${ARTIFACT_NAME} not found!"
-        //                         exit 1
-        //                     fi
-
-        //                     mvn deploy:deploy-file \
-        //                         -Durl=${NEXUS_URL}/repository/${NEXUS_REPO}/ \
-        //                         -DrepositoryId=nexus \
-        //                         -Dfile=target/${ARTIFACT_NAME} \
-        //                         -DgroupId=tn.esprit.spring \
-        //                         -DartifactId=Foyer \
-        //                         -Dversion=${VERSION} \
-        //                         -Dpackaging=jar \
-        //                         -DgeneratePom=true
-        //                 '''
-        //             }
-        //         }
-        //     }
-        // }
 
         stage('SonarQube Analysis') {
             steps {
