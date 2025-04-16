@@ -55,30 +55,48 @@ pipeline {
         }
 
         stage('Deploy to Nexus') {
-    steps {
-        script {
-            withCredentials([usernamePassword(
-                credentialsId: 'nexus',
-                usernameVariable: 'NEXUS_USER',
-                passwordVariable: 'NEXUS_PASS'
-            )]) {
-                // Make sure settings.xml exists in workspace
-                sh 'ls -la settings.xml || echo "settings.xml not found"'
-                
-                sh """
-                    mvn deploy \
-                    -DaltDeploymentRepository=nexus-releases::default::${NEXUS_URL} \
-                    -DrepositoryId=nexus-releases \
-                    -s settings.xml
-                """
+            steps {
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'nexus',
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
+                    )]) {
+                        sh """
+                            mvn deploy \
+                            -DaltDeploymentRepository=nexus-releases::default::${NEXUS_URL} \
+                            -DrepositoryId=nexus-releases \
+                            -s settings.xml
+                        """
+                    }
+                }
             }
         }
-    }
-}
+
+        stage('Download Artifact from Nexus') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'nexus',
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
+                    )]) {
+                        sh 'mkdir -p target'
+                        sh """
+                            curl -u ${NEXUS_USER}:${NEXUS_PASS} \
+                            -o target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar \
+                            "${NEXUS_URL}${ARTIFACT_PATH}"
+                        """
+                        sh 'ls -l target/'
+                    }
+                }
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
                 script {
+                    sh 'ls -l target/*.jar'
                     sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
                     sh 'docker images | grep ${DOCKER_IMAGE}'
                 }
@@ -103,8 +121,6 @@ pipeline {
             steps {
                 sh 'docker-compose -f docker-compose.yml up -d'
                 sh 'sleep 20'
-                
-                // Verify application is running
                 sh """
                     curl -s http://localhost:8082/Foyer/actuator/health || echo "Health check failed"
                     echo "Application should be available at: http://172.20.99.98:8082/Foyer"
