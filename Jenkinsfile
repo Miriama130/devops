@@ -28,14 +28,11 @@ pipeline {
         }
 
         stage('Checkout Code') {
-    steps {
-        withCredentials([string(credentialsId: 'Token', variable: 'GITHUB_TOKEN')]) {
-            sh '''
-                curl -H "Authorization: token $GITHUB_TOKEN" \
-                https://api.github.com/rate_limit
-            '''
-        }
-    }
+            steps {
+                git branch: 'Mariemtl',
+                    credentialsId: 'Token',
+                    url: 'https://github.com/Miriama130/devops.git'
+            }
 }
 
 
