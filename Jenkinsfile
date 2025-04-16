@@ -92,16 +92,70 @@ pipeline {
             }
         }
 
-        stage('Deploy to Nexus') {
+        // stage('Deploy to Nexus') {
+        //     steps {
+        //         withCredentials([usernamePassword(credentialsId: 'ons123', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+        //             sh '''
+        //             mvn deploy \
+        //                 -DrepositoryId=nexus \
+        //                 -Durl=$NEXUS_URL \
+        //                 -Dusername=$NEXUS_USER \
+        //                 -Dpassword=$NEXUS_PASS
+        //             '''
+        //         }
+        //     }
+        // }
+stage('Deploy to Nexus') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'ons123', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                    sh '''
-                    mvn deploy \
-                        -DrepositoryId=nexus \
-                        -Durl=$NEXUS_URL \
-                        -Dusername=$NEXUS_USER \
-                        -Dpassword=$NEXUS_PASS
-                    '''
+                script {
+                    def retryCount = 0
+                    def maxRetries = 2
+                    def success = false
+                    
+                    while (!success && retryCount < maxRetries) {
+                        try {
+                            withCredentials([usernamePassword(credentialsId: 'ons123', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                                // Validation préalable - vérifier si Nexus est accessible
+                                def nexusCheck = sh(script: "curl -I -s ${NEXUS_URL} -u ${NEXUS_USER}:${NEXUS_PASS} | head -n 1 | cut -d ' ' -f2", returnStdout: true).trim()
+                                
+                                if (nexusCheck == "200" || nexusCheck == "401") {
+                                    echo "Nexus server is accessible, attempting deployment"
+                                    
+                                    sh '''
+                                    mvn deploy \
+                                        -DrepositoryId=nexus \
+                                        -Durl=$NEXUS_URL \
+                                        -Dusername=$NEXUS_USER \
+                                        -Dpassword=$NEXUS_PASS
+                                    '''
+                                    success = true
+                                } else {
+                                    error "Nexus server is not accessible (HTTP ${nexusCheck})"
+                                }
+                            }
+                        } catch (Exception e) {
+                            retryCount++
+                            
+                            // Analyse de l'erreur Nexus
+                            if (e.message.contains("401 Unauthorized")) {
+                                echo "Authentication to Nexus failed. Check credentials."
+                                // Vérifier si les credentials sont correctement configurés dans Jenkins
+                                logError("Nexus authentication failed", e)
+                                error "Nexus authentication failed. Please verify your credentials."
+                            } else if (e.message.contains("Connection refused")) {
+                                echo "Connection to Nexus failed. Check network or Nexus availability."
+                                logError("Nexus connection failed", e)
+                            }
+                            
+                            if (retryCount >= maxRetries) {
+                                logError("Nexus deployment failed after ${retryCount} attempts", e)
+                                error "Nexus deployment failed after ${retryCount} attempts: ${e.message}"
+                            } else {
+                                echo "Nexus deployment failed, retrying (${retryCount}/${maxRetries})..."
+                                sleep 10 // Attendre 10 secondes avant de réessayer
+                            }
+                        }
+                    }
                 }
             }
         }
