@@ -31,10 +31,10 @@ pipeline {
     steps {
         git branch: 'Mariemtl',
             credentialsId: 'Token',
-            url: 'https://github.com/Miriama130/devops.git',
-            depth: 1  // This does a shallow clone
+            url: 'https://github.com/Miriama130/devops.git'
     }
 }
+
 
         stage('Build & Test') {
             steps {
