@@ -6,7 +6,7 @@ pipeline {
         DOCKER_TAG = 'latest'
         SONARQUBE_URL = 'http://172.20.99.98:9000'
         NEXUS_URL = 'http://172.20.99.98:8081/repository/maven-releases/'
-        ARTIFACT_VERSION = '0.0.1'
+        ARTIFACT_VERSION = "0.0.1-${BUILD_NUMBER}"
         ARTIFACT_NAME = 'Foyer'
         ARTIFACT_PATH = "tn/esprit/spring/${ARTIFACT_NAME}/${ARTIFACT_VERSION}/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar"
     }
