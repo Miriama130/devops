@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "onsdachraoui/foyer-app:latest"
-        NEXUS_URL = "http://172.18.64.72:8081"
         NEXUS_REPO = "maven-releases"  // Remplace par "maven-snapshots" si nécessaire
         NEXUS_URL = 'http://http://172.18.64.72:8081/repository/maven-snapshots'
     }
