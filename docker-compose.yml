@@ -9,7 +9,7 @@ services:
       MYSQL_ROOT_PASSWORD: mimi
       MYSQL_DATABASE: foyer
     ports:
-      - "3306:3306"
+      - "3307:3306"
     networks:
       - foyer-network
     volumes:
