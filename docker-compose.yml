@@ -39,7 +39,6 @@ services:
 
 networks:
   foyer-network:
-    external: true
 
 volumes:
   mysql_data:
