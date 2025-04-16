@@ -35,7 +35,7 @@ pipeline {
             steps {
                 echo 'Building Maven Project...'
                 sh 'mvn clean package'
-                sh 'ls -l target/'  // Vérifie que le JAR est bien généré
+                sh 'ls -l target/'
             }
         }
 
@@ -92,24 +92,11 @@ pipeline {
             }
         }
 
-   // stage('Déploiement sur Nexus') {
-   //          steps {
-   //              withCredentials([usernamePassword(credentialsId: 'ons123', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-   //                  sh '''
-   //                      mvn deploy \
-   //                      -DrepositoryId=nexus \
-   //                      -Durl=$NEXUS_URL \
-   //                      -Dusername=$NEXUS_USER \
-   //                      -Dpassword=$NEXUS_PASS
-   //                  '''
-   //              }
-   //          }
-   //      }
-stage('Deploy to Nexus') {
+        stage('Deploy to Nexus') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'ons123', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                     sh '''
-                        mvn deploy \
+                    mvn deploy \
                         -DrepositoryId=nexus \
                         -Durl=$NEXUS_URL \
                         -Dusername=$NEXUS_USER \
@@ -118,8 +105,6 @@ stage('Deploy to Nexus') {
                 }
             }
         }
-    }
-
 
         stage('SonarQube Analysis') {
             steps {
