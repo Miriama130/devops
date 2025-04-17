@@ -91,22 +91,25 @@ pipeline {
             }
         }
 
-       stage('Artifact Upload') {
+      stage('Artifact Upload') {
     steps {
-        nexusArtifactUploader artifacts: [[
-            artifactId: 'foyer-app',
-            classifier: '',
-            file: 'target/foyer-app-0.0.1-SNAPSHOT.jar',
-            type: 'jar'
-        ]],
-        credentialsId: 'NexusJenkins',
-        groupId: 'com.foyer',
-        nexusUrl: '172.19.129.224:8081',
-        nexusVersion: 'nexus3',
-        protocol: 'http',
-        repository: 'maven-central-repository',
-        version: '0.0.1-SNAPSHOT'
+        nexusArtifactUploader(
+            nexusVersion: 'nexus3',
+            protocol: 'http',
+            nexusUrl: '172.19.129.224:8081',
+            groupId: 'com.foyer',
+            version: '0.0.1-SNAPSHOT',
+            repository: 'maven-central-repository',
+            credentialsId: 'NexusJenkins',
+            artifacts: [[
+                artifactId: 'Foyer',
+                classifier: '',
+                file: 'target/Foyer-0.0.1-SNAPSHOT.jar',
+                type: 'jar'
+            ]]
+        )
     }
 }
+
     }
 }
