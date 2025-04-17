@@ -133,6 +133,22 @@ pipeline {
                 }
             }
         }
+
+        stage('Send Email Notification') {
+    steps {
+        emailext(
+            to: 'sarahmaamar2001@gmail.com',
+            subject: "Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
+            body: """
+            <h3>Build Status: ${currentBuild.currentResult}</h3>
+            <p><b>Build #:</b> ${env.BUILD_NUMBER}</p>
+            <p><b>Logs:</b> <a href="${env.BUILD_URL}console">View Console Output</a></p>
+            <p><b>Application:</b> <a href="http://172.25.249.157:8082/Foyer">Open Foyer</a></p>
+            """,
+            mimeType: 'text/html'
+        )
+    }
+}
     }
 
     post {
