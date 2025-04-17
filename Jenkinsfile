@@ -4,7 +4,6 @@ pipeline {
     environment {
         IMAGE_NAME = 'foyer-app'
         IMAGE_TAG = "latest-${BUILD_NUMBER}"
-        DOCKER_REGISTRY = '' // Add if pushing to a registry
         CONTAINER_PORT = 8081
         HOST_PORT = 8081
         SONAR_HOST_URL = 'http://172.17.102.63:9000'
@@ -12,21 +11,10 @@ pipeline {
         SONAR_PROJECT_NAME = 'devops'
     }
 
-    triggers {
-        pollSCM('H/5 * * * *')
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/adam']],
-                    extensions: [],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/Miriama130/devops.git'
-                    ]]
-                ])
+                checkout scm
             }
         }
 
@@ -37,7 +25,6 @@ pipeline {
             post {
                 always {
                     junit 'target/surefire-reports/**/*.xml'
-                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
             }
         }
@@ -45,16 +32,16 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('Sonar') {
-                    withCredentials([string(credentialsId: 'devops', variable: 'SONAR_TOKEN')]) {
+                    withCredentials([string(credentialsId: 'devopes', variable: 'SONAR_TOKEN')]) {
                         sh """
-                            mvn sonar:sonar \\
-                            -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \\
-                            -Dsonar.projectName=${env.SONAR_PROJECT_NAME} \\
-                            -Dsonar.host.url=${env.SONAR_HOST_URL} \\
-                            -Dsonar.login=${SONAR_TOKEN} \\
-                            -Dsonar.java.binaries=target/classes \\
-                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \\
-                            -Dsonar.language=java \\
+                            mvn sonar:sonar \
+                            -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \
+                            -Dsonar.projectName=${env.SONAR_PROJECT_NAME} \
+                            -Dsonar.host.url=${env.SONAR_HOST_URL} \
+                            -Dsonar.login=${SONAR_TOKEN} \
+                            -Dsonar.java.binaries=target/classes \
+                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                            -Dsonar.language=java \
                             -Dsonar.sourceEncoding=UTF-8
                         """
                     }
@@ -94,13 +81,7 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline completed - cleanup resources if needed'
-        }
-        success {
-            echo 'Pipeline succeeded!'
-        }
-        failure {
-            echo 'Pipeline failed!'
+            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
         }
     }
 }
