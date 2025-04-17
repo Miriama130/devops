@@ -4,12 +4,10 @@ pipeline {
     environment {
         DOCKER_IMAGE = "onsdachraoui/foyer-app:latest"
         NEXUS_REPO = "maven-releases"  // Remplace par "maven-snapshots" si nécessaire
-        // NEXUS_URL = 'http://172.18.64.72:8081/repository/maven-snapshots'
-          NEXUS_RELEASES_URL = "http://172.18.64.72:8081/repository/maven-releases"
-          ARTIFACT_NAME = 'Foyer'    
-          ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
+        NEXUS_RELEASES_URL = "http://172.18.64.72:8081/repository/maven-releases"
+        ARTIFACT_NAME = 'Foyer'    
+        ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
         ARTIFACT_PATH = "tn/esprit/spring/${ARTIFACT_NAME}/${ARTIFACT_VERSION}/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar"
-    
     }
 
     stages {
@@ -17,7 +15,7 @@ pipeline {
             steps {
                 script {
                     echo 'Cloning Repository...'
-                    checkout([
+                    checkout([ 
                         $class: 'GitSCM',
                         branches: [[name: 'ons']],
                         userRemoteConfigs: [[
@@ -97,7 +95,7 @@ pipeline {
             }
         }
 
-       stage('Download Artifact from Nexus') {
+        stage('Download Artifact from Nexus') {
             steps {
                 script {
                     withCredentials([usernamePassword(
@@ -122,6 +120,7 @@ pipeline {
                 }
             }
         }
+
         stage('SonarQube Analysis') {
             steps {
                 script {
@@ -138,28 +137,28 @@ pipeline {
                 }
             }
         }
+
+        stage('Send Email Notification') {
+            steps {
+                mail(
+                    to: 'onsdachraoui87@gmail.com',
+                    subject: "✅ Jenkins Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
+                    body: """
+                        Hello,
+
+                        ✅ Jenkins Build #${env.BUILD_NUMBER} has completed with status: ${currentBuild.currentResult}.
+
+                        🔗 Build Details: ${env.BUILD_URL}
+                        🐳 Docker Image: ${DOCKER_IMAGE}
+                        🎯 Artifact: ${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar
+                        📦 Nexus URL: ${NEXUS_RELEASES_URL}${ARTIFACT_PATH}
+
+                        Have a nice day!
+                    """
+                )
+            }
+        }
     }
-    stage('Send Email Notification') {
-    steps {
-        mail(
-            to: 'onsdachraoui87@gmail.com',
-            subject: "✅ Jenkins Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
-            body: """
-                Hello,
-
-                ✅ Jenkins Build #${env.BUILD_NUMBER} has completed with status: ${currentBuild.currentResult}.
-
-                🔗 Build Details: ${env.BUILD_URL}
-                🐳 Docker Image: ${DOCKER_IMAGE}
-                🎯 Artifact: ${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar
-                📦 Nexus URL: ${NEXUS_RELEASES_URL}${ARTIFACT_PATH}
-
-                Have a nice day!
-            """
-        )
-    }
-}
-
 
     post {
         always {
@@ -173,5 +172,3 @@ pipeline {
         }
     }
 }
-
-
