@@ -12,7 +12,7 @@ pipeline {
         ARTIFACT_ID = 'Foyer'
         ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
         ARTIFACT_PATH = "tn/esprit/spring/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar"
-        RECIPIENT = 'zaineb.guesmi@esprit.tn'
+        RECIPIENT = 'guzaineb@gmail.com'
     }
 
     triggers {
