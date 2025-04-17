@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-        // Docker configuration
-        DOCKER_REGISTRY = 'guesmizaineb'
+        // Docker image configuration for local Docker Desktop
         IMAGE_NAME = 'foyer-app'
         IMAGE_TAG = "latest"
 
@@ -50,10 +49,10 @@ pipeline {
                 withSonarQubeEnv('SonarQube') {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                         sh """
-                            mvn clean verify sonar:sonar \
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \
-                            -Dsonar.host.url=${SONAR_HOST_URL} \
+                            mvn clean verify sonar:sonar \\
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
+                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \\
+                            -Dsonar.host.url=${SONAR_HOST_URL} \\
                             -Dsonar.login=${SONAR_TOKEN}
                         """
                     }
@@ -61,7 +60,6 @@ pipeline {
             }
         }
 
-        // Rest of your stages remain the same...
         stage('Build Application') {
             steps {
                 sh 'mvn package -DskipTests'
@@ -77,35 +75,17 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
 
-        stage('Push to Docker Hub') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASS'
-                    )]) {
-                        sh """
-                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                            docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
-                            docker logout
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Deploy') {
+        stage('Deploy Locally') {
             steps {
                 script {
                     sh "docker stop devops-app || true"
                     sh "docker rm devops-app || true"
-                    sh "docker pull ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
-                    sh "docker run -d -p 8081:8081 --name devops-app ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh "docker run -d -p 8081:8081 --name devops-app ${IMAGE_NAME}:${IMAGE_TAG}"
                 }
             }
         }
