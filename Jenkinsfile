@@ -2,13 +2,11 @@ pipeline {
     agent any
 
     environment {
-        // Application configuration
         IMAGE_NAME = 'foyer-app'
         IMAGE_TAG = "latest-${BUILD_NUMBER}"
+        DOCKER_REGISTRY = '' // Add if pushing to a registry
         CONTAINER_PORT = 8081
         HOST_PORT = 8081
-
-        // SonarQube configuration
         SONAR_HOST_URL = 'http://172.17.102.63:9000'
         SONAR_PROJECT_KEY = 'devops'
         SONAR_PROJECT_NAME = 'devops'
@@ -47,7 +45,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('Sonar') {
-                    withCredentials([string(credentialsId: 'devopes', variable: 'SONAR_TOKEN']) {
+                    withCredentials([string(credentialsId: 'devops', variable: 'SONAR_TOKEN')]) {
                         sh """
                             mvn sonar:sonar \\
                             -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \\
