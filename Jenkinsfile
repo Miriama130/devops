@@ -123,18 +123,18 @@ pipeline {
         //         }
         //     }
 
-        stage('Upload Artifact to Nexus') {
+       stage('Upload Artifact to Nexus') {
     steps {
         nexusArtifactUploader(
             nexusVersion: 'nexus3',
             protocol: 'http',
             nexusUrl: "${NEXUS_URL}",
             groupId: "tn.esprit.spring",  // Ajout du groupId
-            artifactId: "${ARTIFACT_NAME}",
             version: "${ARTIFACT_VERSION}",
             repository: "${NEXUS_REPO}",
             credentialsId: 'nex-cred',
             artifacts: [[
+                artifactId: "${ARTIFACT_NAME}",  // Déplacer artifactId dans artifacts
                 classifier: '',
                 file: "target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar",
                 type: 'jar'
