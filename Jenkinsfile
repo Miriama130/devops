@@ -2,14 +2,20 @@ pipeline {
     agent any
 
     environment {
-        // Docker image configuration
+        // Application configuration
         IMAGE_NAME = 'foyer-app'
         IMAGE_TAG = "latest-${BUILD_NUMBER}"
+        CONTAINER_PORT = 8081
+        HOST_PORT = 8081
 
         // SonarQube configuration
         SONAR_HOST_URL = 'http://172.17.102.63:9000'
         SONAR_PROJECT_KEY = 'devops'
         SONAR_PROJECT_NAME = 'devops'
+    }
+
+    triggers {
+        pollSCM('H/5 * * * *')
     }
 
     stages {
@@ -33,6 +39,7 @@ pipeline {
             post {
                 always {
                     junit 'target/surefire-reports/**/*.xml'
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
             }
         }
@@ -42,14 +49,14 @@ pipeline {
                 withSonarQubeEnv('Sonar') {
                     withCredentials([string(credentialsId: 'devopes', variable: 'SONAR_TOKEN']) {
                         sh """
-                            mvn sonar:sonar \
-                            -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \
-                            -Dsonar.projectName=${env.SONAR_PROJECT_NAME} \
-                            -Dsonar.host.url=${env.SONAR_HOST_URL} \
-                            -Dsonar.login=${SONAR_TOKEN} \
-                            -Dsonar.java.binaries=target/classes \
-                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-                            -Dsonar.language=java \
+                            mvn sonar:sonar \\
+                            -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \\
+                            -Dsonar.projectName=${env.SONAR_PROJECT_NAME} \\
+                            -Dsonar.host.url=${env.SONAR_HOST_URL} \\
+                            -Dsonar.login=${SONAR_TOKEN} \\
+                            -Dsonar.java.binaries=target/classes \\
+                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \\
+                            -Dsonar.language=java \\
                             -Dsonar.sourceEncoding=UTF-8
                         """
                     }
@@ -76,7 +83,12 @@ pipeline {
                 script {
                     sh "docker stop devops-app || true"
                     sh "docker rm devops-app || true"
-                    sh "docker run -d -p 8081:8081 --name devops-app ${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                    sh """
+                        docker run -d \
+                        -p ${env.HOST_PORT}:${env.CONTAINER_PORT} \
+                        --name devops-app \
+                        ${env.IMAGE_NAME}:${env.IMAGE_TAG}
+                    """
                 }
             }
         }
@@ -84,7 +96,13 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            echo 'Pipeline completed - cleanup resources if needed'
+        }
+        success {
+            echo 'Pipeline succeeded!'
+        }
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
