@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -10,9 +9,8 @@ pipeline {
         ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
         GROUP_PATH = "tn/esprit/spring"
         NEXUS_URL = '172.18.64.72:8081'
-      NEXUS_SNAPSHOTS_URL = "http://172.18.64.72:8081/repository/maven-snapshots"
+        NEXUS_SNAPSHOTS_URL = "http://172.18.64.72:8081/repository/maven-snapshots"
         ARTIFACT_PATH = "${GROUP_PATH}/${ARTIFACT_NAME}/${ARTIFACT_VERSION}/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar"
-    
     }
 
     stages {
@@ -125,28 +123,24 @@ pipeline {
         //         }
         //     }
 
-  stage('Upload Artifact to Nexus') {
+        stage('Upload Artifact to Nexus') {
             steps {
                 nexusArtifactUploader(
                     nexusVersion: 'nexus3',
                     protocol: 'http',
                     nexusUrl: "${NEXUS_URL}",
-                   
                     version: "${ARTIFACT_VERSION}",
                     repository: "${NEXUS_REPO}",
                     credentialsId: 'nex-cred',
                     artifacts: [[
-                        artifactId: "${ARTIFACT_ID}",
+                        artifactId: "${ARTIFACT_NAME}", // Utilise ARTIFACT_NAME ici, pas ARTIFACT_ID
                         classifier: '',
-                        file: "target/${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar",
+                        file: "target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar",
                         type: 'jar'
                     ]]
                 )
             }
         }
-        
-        }
-
 
         stage('SonarQube Analysis') {
             steps {
