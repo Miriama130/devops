@@ -18,45 +18,53 @@ pipeline {
             }
         }
 
-        stage('Build & Test') {
-            steps {
-                sh 'mvn clean package'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/**/*.xml'
-                }
-            }
-        }
+        stages {
+               stage('Build & Test') {
+                   steps {
+                       // Run tests with coverage collection
+                       sh 'mvn clean verify'
 
-        stage('Verify Coverage') {
-            steps {
-                sh 'mvn jacoco:report' // Explicitly generate coverage report
-                sh 'ls -la target/site/jacoco/' // Debug: Verify report exists
-            }
-        }
+                       // Verify coverage files exist
+                       sh 'ls -la target/'
+                       sh 'ls -la target/site/jacoco/ || echo "Jacoco report not found"'
+                   }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('Sonar') {
-                    withCredentials([string(credentialsId: 'devopes', variable: 'SONAR_TOKEN')]) {
-                        sh """
-                            mvn sonar:sonar \
-                            -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \
-                            -Dsonar.projectName=${env.SONAR_PROJECT_NAME} \
-                            -Dsonar.host.url=${env.SONAR_HOST_URL} \
-                            -Dsonar.login=${SONAR_TOKEN} \
-                            -Dsonar.java.binaries=target/classes \
-                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-                            -Dsonar.jacoco.reportPaths=target/jacoco.exec \
-                            -Dsonar.language=java \
-                            -Dsonar.sourceEncoding=UTF-8 \
-                            -Dsonar.coverage.exclusions=**/test/**,**/config/**
-                        """
-                    }
-                }
-            }
-        }
+                   post {
+                       always {
+                           junit 'target/surefire-reports/**/*.xml'
+                           archiveArtifacts artifacts: 'target/site/jacoco/jacoco.xml', fingerprint: true
+                       }
+                   }
+               }
+
+               stage('Verify Coverage') {
+                   steps {
+                       // Generate the report explicitly
+                       sh 'mvn jacoco:report'
+
+                       // Print coverage summary
+                       sh 'cat target/site/jacoco/jacoco.xml | grep -A 5 "<counter type=\"LINE\"" || echo "No coverage data found"'
+                   }
+               }
+
+               stage('SonarQube Analysis') {
+                   steps {
+                       withSonarQubeEnv('Sonar') {
+                           withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN']) {
+                               sh """
+                                   mvn sonar:sonar \
+                                   -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \
+                                   -Dsonar.projectName=${env.SONAR_PROJECT_NAME} \
+                                   -Dsonar.host.url=${env.SONAR_HOST_URL} \
+                                   -Dsonar.login=${SONAR_TOKEN} \
+                                   -Dsonar.java.binaries=target/classes \
+                                   -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                                   -Dsonar.jacoco.reportPaths=target/jacoco.exec
+                               """
+                           }
+                       }
+                   }
+               }
 
         stage('Build Docker Image') {
             when {
