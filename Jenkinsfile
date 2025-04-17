@@ -12,6 +12,7 @@ pipeline {
         ARTIFACT_ID = 'Foyer'
         ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
         ARTIFACT_PATH = "tn/esprit/spring/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar"
+        RECIPIENT = 'zaineb.guesmi@esprit.tn'
     }
 
     triggers {
@@ -146,4 +147,29 @@ pipeline {
             echo "❌ Build failed!"
         }
     }
+
+
+
+
+    post {
+        success {
+            emailext(
+                subject: "✅ Build Réussi: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "Bonjour,<br><br>Le build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> a été exécuté avec succès.<br>Voir les détails ici : <a href='${env.BUILD_URL}'>Lien Jenkins</a>",
+                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+                to: "${RECIPIENT}"
+            )
+        }
+        failure {
+            emailext(
+                subject: "❌ Échec du Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "Bonjour,<br><br>Le build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> a échoué.<br>Voir les logs ici : <a href='${env.BUILD_URL}'>Lien Jenkins</a>",
+                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+                to: "${RECIPIENT}"
+            )
+        }
+    }
+}
+
+    
 }
