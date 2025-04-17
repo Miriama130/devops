@@ -33,8 +33,7 @@ pipeline {
                 sh 'mvn --version'
             }
         }
-
-        stage('Clean') {
+           stage('Clean') {
             steps {
                 sh 'mvn clean'
             }
