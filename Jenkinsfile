@@ -7,8 +7,8 @@ pipeline {
         IMAGE_TAG = "latest"
         GIT_CREDENTIALS_ID = 'ZAINEB'
         NEXUS_URL = '172.19.129.224:8081'
-        NEXUS_RELEASES_URL = "http://172.18.64.72:8081/repository/maven-central-repository"
-        NEXUS_REPO = 'maven-central-repository'
+        NEXUS_RELEASES_URL = "http://172.19.129.224:8081/repository/maven-releases"
+        NEXUS_REPO = "maven-releases"
         ARTIFACT_ID = 'Foyer'
         ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
         ARTIFACT_PATH = "tn/esprit/spring/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar"
