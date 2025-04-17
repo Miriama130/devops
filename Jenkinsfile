@@ -86,7 +86,7 @@ pipeline {
                     sh 'docker stop devops-app || true'
                     sh 'docker rm devops-app || true'
                     sh 'docker pull ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
-                    sh 'docker run -d -p 8081:8081 --name devops-app ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
+                    sh 'docker run -d -p 8083:8081 --name devops-app ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
                 }
             }
         }
