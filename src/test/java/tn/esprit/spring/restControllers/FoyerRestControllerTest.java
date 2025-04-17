@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class BlocRestControllerTest {
+class FoyerRestControllerTest {
 
     @Mock
     private IBlocService blocService;
