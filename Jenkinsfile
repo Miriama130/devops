@@ -49,14 +49,26 @@ pipeline {
             }
         }
 
-      stage('Déploiement sur Nexus') {
-    steps {
-        script {
-            echo 'Deploying to Nexus using custom settings.xml...'
-            sh 'mvn deploy -s /etc/maven/settings.xml'
+    stage('Upload Artifact to Nexus') {
+            steps {
+                nexusArtifactUploader(
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',
+                    nexusUrl: "${NEXUS_URL}",
+                    groupId: 'com.foyer',
+                    version: "${ARTIFACT_VERSION}",
+                    repository: "${NEXUS_REPO}",
+                    credentialsId: 'nex-cred',
+                    artifacts: [[
+                        artifactId: "${ARTIFACT_ID}",
+                        classifier: '',
+                        file: "target/${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar",
+                        type: 'jar'
+                    ]]
+                )
+            }
         }
     }
-}
 
         stage('Verify Dockerfile') {
             steps {
