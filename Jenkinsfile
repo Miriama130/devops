@@ -40,13 +40,17 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('Sonar') {
-                    withCredentials([string(credentialsId: 'devopes', variable: 'SONAR_TOKEN')]) {
+                    withCredentials([string(credentialsId: 'devops', variable: 'SONAR_TOKEN']) {
                         sh """
                             mvn sonar:sonar \
                             -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \
                             -Dsonar.projectName=${env.SONAR_PROJECT_NAME} \
                             -Dsonar.host.url=${env.SONAR_HOST_URL} \
-                            -Dsonar.login=${SONAR_TOKEN}
+                            -Dsonar.login=${SONAR_TOKEN} \
+                            -Dsonar.java.binaries=target/classes \
+                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                            -Dsonar.language=java \
+                            -Dsonar.sourceEncoding=UTF-8
                         """
                     }
                 }
