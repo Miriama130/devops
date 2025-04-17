@@ -1,10 +1,17 @@
 pipeline {
     agent any
+
     environment {
         DOCKER_REGISTRY = 'guesmizaineb'
         IMAGE_NAME = 'foyer-app'
         IMAGE_TAG = "latest"
         GIT_CREDENTIALS_ID = 'ZAINEB'
+        NEXUS_URL = '172.19.129.224:8081'
+        NEXUS_RELEASES_URL = "http://172.18.64.72:8081/repository/maven-central-repository"
+        NEXUS_REPO = 'maven-central-repository'
+        ARTIFACT_ID = 'Foyer'
+        ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
+        ARTIFACT_PATH = "tn/esprit/spring/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar"
     }
 
     triggers {
@@ -14,11 +21,15 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                script {
-                    git credentialsId: "${GIT_CREDENTIALS_ID}",
-                        url: 'https://github.com/Miriama130/devops.git',
-                        branch: 'zaineb'
-                }
+                git credentialsId: "${GIT_CREDENTIALS_ID}",
+                    url: 'https://github.com/Miriama130/devops.git',
+                    branch: 'zaineb'
+            }
+        }
+
+        stage('Verify Maven') {
+            steps {
+                sh 'mvn --version'
             }
         }
 
@@ -34,82 +45,105 @@ pipeline {
             }
         }
 
+        stage('Run Unit Tests') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     withCredentials([string(credentialsId: 'Jenkins_Sonarqube_Token', variable: 'SONAR_TOKEN')]) {
                         sh '''
-                        mvn sonar:sonar \
-                          -Dsonar.projectKey=foyer-app \
-                          -Dsonar.host.url=http://172.19.129.224:9000 \
-                          -Dsonar.login=$SONAR_TOKEN
+                            mvn sonar:sonar \
+                                -Dsonar.projectKey=foyer-app \
+                                -Dsonar.host.url=http://172.19.129.224:9000 \
+                                -Dsonar.login=$SONAR_TOKEN
                         '''
                     }
                 }
             }
         }
 
-        stage('Build Application') {
+        stage('Package Application') {
             steps {
                 sh 'mvn package -DskipTests'
             }
         }
 
-        stage('Run Tests') {
+        stage('Verify Dockerfile Presence') {
             steps {
-                sh 'mvn test'
+                sh '''
+                    if [ ! -f Dockerfile ]; then
+                        echo "ERROR: Dockerfile is missing!"
+                        exit 1
+                    fi
+                    ls -l Dockerfile
+                '''
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh 'docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} .'
-                }
+                sh """
+                    docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} .
+                """
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'ZainebDocker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    script {
-                        sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
-                        sh 'docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
-                    }
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                    '''
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                script {
-                    sh 'docker stop devops-app || true'
-                    sh 'docker rm devops-app || true'
-                    sh 'docker pull ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
-                    sh 'docker run -d -p 8083:8081 --name devops-app ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
-                }
+                sh '''
+                    docker stop devops-app || true
+                    docker rm devops-app || true
+                    docker pull ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                    docker run -d -p 8083:8081 --name devops-app ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                '''
             }
         }
 
-      stage('Artifact Upload') {
-    steps {
-        nexusArtifactUploader(
-            nexusVersion: 'nexus3',
-            protocol: 'http',
-            nexusUrl: '172.19.129.224:8081',
-            groupId: 'com.foyer',
-            version: '0.0.1-SNAPSHOT',
-            repository: 'maven-central-repository',
-            credentialsId: 'NexusJenkins',
-            artifacts: [[
-                artifactId: 'Foyer',
-                classifier: '',
-                file: 'target/Foyer-0.0.1-SNAPSHOT.jar',
-                type: 'jar'
-            ]]
-        )
+        stage('Upload Artifact to Nexus') {
+            steps {
+                nexusArtifactUploader(
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',
+                    nexusUrl: "${NEXUS_URL}",
+                    groupId: 'com.foyer',
+                    version: "${ARTIFACT_VERSION}",
+                    repository: "${NEXUS_REPO}",
+                    credentialsId: 'NexusJenkins',
+                    artifacts: [[
+                        artifactId: "${ARTIFACT_ID}",
+                        classifier: '',
+                        file: "target/${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar",
+                        type: 'jar'
+                    ]]
+                )
+            }
+        }
     }
-}
 
+    post {
+        always {
+            echo "Pipeline completed!"
+        }
+        success {
+            echo "✅ Build succeeded!"
+        }
+        failure {
+            echo "❌ Build failed!"
+        }
     }
 }
