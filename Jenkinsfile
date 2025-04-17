@@ -49,10 +49,17 @@ pipeline {
             }
         }
 
-        stage('Deploy to Nexus') {
+       stage('Déploiement sur Nexus') {
             steps {
-                echo 'Deploying artifact to Nexus...'
-                sh 'mvn deploy'
+                withCredentials([usernamePassword(credentialsId: 'nex-cred', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                    sh '''
+                        mvn deploy \
+                        -DrepositoryId=nexus \
+                        -Durl=$NEXUS_RELEASES_URL \
+                        -Dusername=$NEXUS_USER \
+                        -Dpassword=$NEXUS_PASS
+                    '''
+                }
             }
         }
 
@@ -102,26 +109,26 @@ pipeline {
             }
         }
 
-        stage('Download Artifact from Nexus') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(
-                        credentialsId: 'nex-cred',
-                        usernameVariable: 'NEXUS_USER',
-                        passwordVariable: 'NEXUS_PASS'
-                    )]) {
-                        sh 'mkdir -p target'
-                        sh """
-                            curl -u ${NEXUS_USER}:${NEXUS_PASS} \
-                            -o target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar \
-                            "${NEXUS_RELEASES_URL}${ARTIFACT_PATH}"
-                        """
-                        sh 'ls -l target/'
-                        sh 'file target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar'
-                    }
-                }
-            }
-        }
+        // stage('Download Artifact from Nexus') {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(
+        //                 credentialsId: 'nex-cred',
+        //                 usernameVariable: 'NEXUS_USER',
+        //                 passwordVariable: 'NEXUS_PASS'
+        //             )]) {
+        //                 sh 'mkdir -p target'
+        //                 sh """
+        //                     curl -u ${NEXUS_USER}:${NEXUS_PASS} \
+        //                     -o target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar \
+        //                     "${NEXUS_RELEASES_URL}${ARTIFACT_PATH}"
+        //                 """
+        //                 sh 'ls -l target/'
+        //                 sh 'file target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar'
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('SonarQube Analysis') {
             steps {
