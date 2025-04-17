@@ -28,17 +28,18 @@ pipeline {
                 }
             }
         }
+
         stage('Verify Coverage') {
             steps {
-                sh 'ls -la target/site/jacoco/'
-                sh 'cat target/site/jacoco/jacoco.xml || echo "No jacoco.xml found"'
+                sh 'mvn jacoco:report' // Explicitly generate coverage report
+                sh 'ls -la target/site/jacoco/' // Debug: Verify report exists
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('Sonar') {
-                    withCredentials([string(credentialsId: 'devopes', variable: 'SONAR_TOKEN']) {
+                    withCredentials([string(credentialsId: 'devopes', variable: 'SONAR_TOKEN')]) {
                         sh """
                             mvn sonar:sonar \
                             -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \
@@ -47,15 +48,16 @@ pipeline {
                             -Dsonar.login=${SONAR_TOKEN} \
                             -Dsonar.java.binaries=target/classes \
                             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-                            -Dsonar.coverage.exclusions=**/test/** \
+                            -Dsonar.jacoco.reportPaths=target/jacoco.exec \
                             -Dsonar.language=java \
                             -Dsonar.sourceEncoding=UTF-8 \
-                            -Dsonar.jacoco.reportPaths=target/jacoco.exec
+                            -Dsonar.coverage.exclusions=**/test/**,**/config/**
                         """
                     }
                 }
             }
         }
+
         stage('Build Docker Image') {
             when {
                 expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
@@ -89,6 +91,13 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            echo 'Pipeline completed - cleanup resources if needed'
+        }
+        success {
+            echo 'Pipeline succeeded!'
+        }
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
