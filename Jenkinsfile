@@ -52,24 +52,25 @@ pipeline {
         }
 
         stage('Upload Artifact to Nexus') {
-            steps {
-                nexusArtifactUploader(
-                    nexusVersion: 'nexus3',
-                    protocol: 'http',
-                    nexusUrl: "${NEXUS_URL}",
-                    groupId: 'com.foyer',
-                    version: "${ARTIFACT_VERSION}",
-                    repository: "${NEXUS_REPO}",
-                    credentialsId: 'nex-cred',
-                    artifacts: [[
-                        artifactId: "${ARTIFACT_ID}",
-                        classifier: '',
-                        file: "target/${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar",
-                        type: 'jar'
-                    ]]
-                )
-            }
-        }
+    steps {
+        nexusArtifactUploader(
+            nexusVersion: 'nexus3',
+            protocol: 'http',  // Ce sera préfixé automatiquement
+            nexusUrl: "172.18.64.72:8081",  // ⚠️ Enlève le "http://"
+            groupId: 'com.foyer',
+            version: "${ARTIFACT_VERSION}",
+            repository: "${NEXUS_REPO}",
+            credentialsId: 'nex-cred',
+            artifacts: [[
+                artifactId: "${ARTIFACT_ID}",
+                classifier: '',
+                file: "target/${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar",
+                type: 'jar'
+            ]]
+        )
+    }
+}
+
 
         stage('Verify Dockerfile') {
             steps {
