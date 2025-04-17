@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "onsdachraoui/foyer-app:latest"
-        NEXUS_REPO = "maven-snapshots"  // Remplace par "maven-snapshots" si nécessaire
+        NEXUS_REPO = "maven-snapshots"
         NEXUS_RELEASES_URL = "http://172.18.64.72:8081/repository/maven-releases"
         ARTIFACT_NAME = 'Foyer'    
         ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
@@ -46,6 +46,13 @@ pipeline {
             steps {
                 echo 'Running Unit Tests...'
                 sh 'mvn test'
+            }
+        }
+
+        stage('Deploy to Nexus') {
+            steps {
+                echo 'Deploying artifact to Nexus...'
+                sh 'mvn deploy'
             }
         }
 
@@ -103,17 +110,12 @@ pipeline {
                         usernameVariable: 'NEXUS_USER',
                         passwordVariable: 'NEXUS_PASS'
                     )]) {
-                        // Create target directory if it doesn't exist
                         sh 'mkdir -p target'
-                        
-                        // Download the JAR from Nexus releases repository
                         sh """
                             curl -u ${NEXUS_USER}:${NEXUS_PASS} \
                             -o target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar \
                             "${NEXUS_RELEASES_URL}${ARTIFACT_PATH}"
                         """
-                        
-                        // Verify the download
                         sh 'ls -l target/'
                         sh 'file target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar'
                     }
