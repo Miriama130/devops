@@ -1,16 +1,16 @@
 pipeline {
     agent any
 
-  environment {
-    DOCKER_IMAGE = "onsdachraoui/foyer-app:latest"
-    NEXUS_REPO = "maven-snapshots"
-    NEXUS_RELEASES_URL = "http://172.18.64.72:8081/repository/maven-releases"
-    ARTIFACT_NAME = 'Foyer'
-    ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
-    ARTIFACT_PATH = "tn/esprit/spring/${ARTIFACT_NAME}/${ARTIFACT_VERSION}/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar"
-    ARTIFACT_ID = 'Foyer'
-    NEXUS_URL = "http://172.18.64.72:8081"
-}
+    environment {
+        DOCKER_IMAGE = "onsdachraoui/foyer-app:latest"
+        NEXUS_REPO = "maven-snapshots"
+        NEXUS_RELEASES_URL = "http://172.18.64.72:8081/repository/maven-releases"
+        ARTIFACT_NAME = 'Foyer'    
+        ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
+        ARTIFACT_PATH = "tn/esprit/spring/${ARTIFACT_NAME}/${ARTIFACT_VERSION}/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar"
+        ARTIFACT_ID = 'Foyer'
+        NEXUS_URL = "http://172.18.64.72:8081"
+    }
 
     stages {
         stage('Clone Repository') {
@@ -51,7 +51,7 @@ pipeline {
             }
         }
 
-    stage('Upload Artifact to Nexus') {
+        stage('Upload Artifact to Nexus') {
             steps {
                 nexusArtifactUploader(
                     nexusVersion: 'nexus3',
@@ -70,7 +70,6 @@ pipeline {
                 )
             }
         }
-    }
 
         stage('Verify Dockerfile') {
             steps {
