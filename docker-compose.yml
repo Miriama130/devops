@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  foyer-app:
+    build: .  
+    image: saraiguess/foyer-app:latest
+    container_name: foyer-app
+    ports:
+      - "8082:8081"  # Changed from 8081 → 8082 (external:internal)
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://foyer-db:3306/foyer?createDatabaseIfNotExist=true&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=update
+      - SERVER_PORT=8081  # Internal container port (keep as-is)
+      - SERVER_SERVLET_CONTEXT-PATH=/Foyer
+    depends_on:
+      foyer-db:
+        condition: service_healthy
+    networks:
+      - foyer-network
+
+  foyer-db:
+    image: mysql:8.0
+    container_name: foyer-db
+    environment:
+      - MYSQL_DATABASE=foyer
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - foyer-db-data:/var/lib/mysql
+    ports:
+      - "3307:3306"  # Optional: Remap MySQL if local 3306 is occupied
+    networks:
+      - foyer-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+volumes:
+  foyer-db-data:
+
+networks:
+  foyer-network:
+    driver: bridge
