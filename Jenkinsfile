@@ -78,18 +78,18 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'DOCKER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh '''
-                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                        docker push $DOCKER_IMAGE
-                        '''
-                    }
-                }
-            }
-        }
+        // stage('Push Docker Image') {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(credentialsId: 'DOCKER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+        //                 sh '''
+        //                 echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+        //                 docker push $DOCKER_IMAGE
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Run Tests with Spring Profile') {
             steps {
