@@ -99,33 +99,7 @@ pipeline {
             }
         }
 
-        // stage('Download Artifact from Nexus') {
-        //     steps {
-        //         script {
-        //             withCredentials([usernamePassword(
-        //                 credentialsId: 'nex-cred',
-        //                 usernameVariable: 'NEXUS_USER',
-        //                 passwordVariable: 'NEXUS_PASS'
-        //             )]) {
-        //                 // Create target directory if it doesn't exist
-        //                 sh 'mkdir -p target'
-                        
-        //                 // Download the JAR from Nexus releases repository
-        //                 sh """
-        //                     curl -u ${NEXUS_USER}:${NEXUS_PASS} \
-        //                     -o target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar \
-        //                     "${NEXUS_RELEASES_URL}${ARTIFACT_PATH}"
-        //                 """
-                        
-        //                 // Verify the download
-        //                 sh 'ls -l target/'
-        //                 sh 'file target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar'
-        //             }
-        //         }
-        //     }
-        // }
-
- stage('Verify Deployment') {
+        stage('Download Artifact from Nexus') {
             steps {
                 script {
                     withCredentials([usernamePassword(
@@ -133,41 +107,25 @@ pipeline {
                         usernameVariable: 'NEXUS_USER',
                         passwordVariable: 'NEXUS_PASS'
                     )]) {
-                        // Vérification que l'artifact est bien dans Nexus
-                        def nexusArtifactUrl = "${NEXUS_SNAPSHOTS_URL}/${ARTIFACT_PATH}"
-                        def httpCode = sh(
-                            script: "curl -u ${NEXUS_USER}:${NEXUS_PASS} -s -o /dev/null -w '%{http_code}' ${nexusArtifactUrl}",
-                            returnStdout: true
-                        ).trim()
+                        // Create target directory if it doesn't exist
+                        sh 'mkdir -p target'
                         
-                        if (httpCode != "200") {
-                            error "L'artifact n'a pas été correctement déployé dans Nexus (HTTP ${httpCode})"
-                        } else {
-                            echo "Artifact vérifié avec succès dans Nexus"
-                        }
+                        // Download the JAR from Nexus releases repository
+                        sh """
+                            curl -u ${NEXUS_USER}:${NEXUS_PASS} \
+                            -o target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar \
+                            "${NEXUS_RELEASES_URL}${ARTIFACT_PATH}"
+                        """
+                        
+                        // Verify the download
+                        sh 'ls -l target/'
+                        sh 'file target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar'
                     }
                 }
             }
         }
- stage('Download Artifact') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'nex-cred',
-                    usernameVariable: 'NEXUS_USER',
-                    passwordVariable: 'NEXUS_PASS'
-                )]) {
-                    sh """
-                    mkdir -p target
-                    curl -u ${NEXUS_USER}:${NEXUS_PASS} \
-                        -o "target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar" \
-                        "${NEXUS_SNAPSHOTS_URL}/${ARTIFACT_PATH}"
-                    """
-                    sh "ls -lh target/"
-                    sh "file target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar"
-                }
-            }
-        }
-        
+
+
         stage('SonarQube Analysis') {
             steps {
                 script {
