@@ -33,7 +33,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'Mariemtl',
-                    credentialsId: 'Token',
+                    credentialsId: 'TOKEN',
                     url: 'https://github.com/Miriama130/devops.git'
             }
 }
