@@ -90,5 +90,10 @@ pipeline {
                 }
             }
         }
+
+        stage('artifact upload') {
+            steps {
+             nexusArtifactUploader artifacts: [[artifactId: 'spring-boot-starter-parent', classifier: '', file: 'target/Foyer-0.0.1-SNAPSHOT.jar.original', type: '.jar']], credentialsId: 'NexusJenkins', groupId: 'org.springframework.boot', nexusUrl: '172.19.129.224:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'maven-centarl-repository', version: '3.1.5'  }
+        }
     }
 }
