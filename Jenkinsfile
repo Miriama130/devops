@@ -3,8 +3,9 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "onsdachraoui/foyer-app:latest"
-        NEXUS_REPO = "maven-snapshots"  // Remplace par "maven-snapshots" si nécessaire
-        NEXUS_URL = 'http://172.18.64.72:8081/repository/maven-snapshots'
+        NEXUS_REPO = "maven-releases"  // Remplace par "maven-snapshots" si nécessaire
+        // NEXUS_URL = 'http://172.18.64.72:8081/repository/maven-snapshots'
+          NEXUS_RELEASES_URL = "http://172.18.64.72:8081/repository/maven-releases"
     }
 
     stages {
@@ -92,35 +93,31 @@ pipeline {
             }
         }
 
-       stage('Deploy to Nexus') {
+       stage('Download Artifact from Nexus') {
             steps {
                 script {
                     withCredentials([usernamePassword(
                         credentialsId: 'nex-cred',
-                        usernameVariable: 'admin',
-                        passwordVariable: 'admin123'
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
                     )]) {
-                        // First verify credentials work
-                        sh '''
-                        if ! curl -s -u $NEXUS_USER:$NEXUS_PASS $NEXUS_URL >/dev/null; then
-                            echo "ERROR: Nexus credentials verification failed!"
-                            exit 1
-                        fi
-                        '''
-                        // Then deploy
-                        sh '''
-                        mvn deploy \
-                            -DrepositoryId=nexus \
-                            -Durl=$NEXUS_URL \
-                            -Dusername=$NEXUS_USER \
-                            -Dpassword=$NEXUS_PASS \
-                            -DskipTests=true
-                        '''
+                        // Create target directory if it doesn't exist
+                        sh 'mkdir -p target'
+                        
+                        // Download the JAR from Nexus releases repository
+                        sh """
+                            curl -u ${NEXUS_USER}:${NEXUS_PASS} \
+                            -o target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar \
+                            "${NEXUS_RELEASES_URL}${ARTIFACT_PATH}"
+                        """
+                        
+                        // Verify the download
+                        sh 'ls -l target/'
+                        sh 'file target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar'
                     }
                 }
             }
         }
-
         stage('SonarQube Analysis') {
             steps {
                 script {
