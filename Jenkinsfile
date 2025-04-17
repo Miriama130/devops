@@ -99,30 +99,51 @@ pipeline {
             }
         }
 
-        stage('Download Artifact from Nexus') {
+        // stage('Download Artifact from Nexus') {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(
+        //                 credentialsId: 'nex-cred',
+        //                 usernameVariable: 'NEXUS_USER',
+        //                 passwordVariable: 'NEXUS_PASS'
+        //             )]) {
+        //                 // Create target directory if it doesn't exist
+        //                 sh 'mkdir -p target'
+                        
+        //                 // Download the JAR from Nexus releases repository
+        //                 sh """
+        //                     curl -u ${NEXUS_USER}:${NEXUS_PASS} \
+        //                     -o target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar \
+        //                     "${NEXUS_RELEASES_URL}${ARTIFACT_PATH}"
+        //                 """
+                        
+        //                 // Verify the download
+        //                 sh 'ls -l target/'
+        //                 sh 'file target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar'
+        //             }
+        //         }
+        //     }
+
+  stage('Upload Artifact to Nexus') {
             steps {
-                script {
-                    withCredentials([usernamePassword(
-                        credentialsId: 'nex-cred',
-                        usernameVariable: 'NEXUS_USER',
-                        passwordVariable: 'NEXUS_PASS'
-                    )]) {
-                        // Create target directory if it doesn't exist
-                        sh 'mkdir -p target'
-                        
-                        // Download the JAR from Nexus releases repository
-                        sh """
-                            curl -u ${NEXUS_USER}:${NEXUS_PASS} \
-                            -o target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar \
-                            "${NEXUS_RELEASES_URL}${ARTIFACT_PATH}"
-                        """
-                        
-                        // Verify the download
-                        sh 'ls -l target/'
-                        sh 'file target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar'
-                    }
-                }
+                nexusArtifactUploader(
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',
+                    nexusUrl: "${NEXUS_URL}",
+                   
+                    version: "${ARTIFACT_VERSION}",
+                    repository: "${NEXUS_REPO}",
+                    credentialsId: 'nex-cred',
+                    artifacts: [[
+                        artifactId: "${ARTIFACT_ID}",
+                        classifier: '',
+                        file: "target/${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar",
+                        type: 'jar'
+                    ]]
+                )
             }
+        }
+        
         }
 
 
