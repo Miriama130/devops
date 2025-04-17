@@ -9,7 +9,7 @@ pipeline {
         ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
         ARTIFACT_PATH = "tn/esprit/spring/${ARTIFACT_NAME}/${ARTIFACT_VERSION}/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar"
         ARTIFACT_ID = 'Foyer'
-        NEXUS_URL = "http://172.18.64.72:8081"
+        NEXUS_URL = "http://172.18.64.72:8081"  // Correction ici
     }
 
     stages {
@@ -116,27 +116,6 @@ pipeline {
                 sh 'mvn test -Dspring.profiles.active=test'
             }
         }
-
-        // stage('Download Artifact from Nexus') {
-        //     steps {
-        //         script {
-        //             withCredentials([usernamePassword(
-        //                 credentialsId: 'nex-cred',
-        //                 usernameVariable: 'NEXUS_USER',
-        //                 passwordVariable: 'NEXUS_PASS'
-        //             )]) {
-        //                 sh 'mkdir -p target'
-        //                 sh """
-        //                     curl -u ${NEXUS_USER}:${NEXUS_PASS} \
-        //                     -o target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar \
-        //                     "${NEXUS_RELEASES_URL}${ARTIFACT_PATH}"
-        //                 """
-        //                 sh 'ls -l target/'
-        //                 sh 'file target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar'
-        //             }
-        //         }
-        //     }
-        // }
 
         stage('SonarQube Analysis') {
             steps {
