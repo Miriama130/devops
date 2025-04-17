@@ -5,114 +5,147 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import tn.esprit.spring.dao.entities.Foyer;
-import tn.esprit.spring.dao.entities.Universite;
-import tn.esprit.spring.services.Foyer.IFoyerService;
+
+import tn.esprit.spring.dao.entities.Bloc;
+import tn.esprit.spring.services.Bloc.IBlocService;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-@ExtendWith(MockitoExtension.class)
 
-class FoyerRestControllerTest {
+@ExtendWith(MockitoExtension.class)
+class BlocRestControllerTest {
 
     @Mock
-    private IFoyerService service;
+    private IBlocService blocService;
 
     @InjectMocks
-    private FoyerRestController controller;
+    private BlocRestController blocRestController;
+
+    private Bloc sampleBloc;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        sampleBloc = new Bloc();
+        sampleBloc.setNomBloc("Sample Bloc");
     }
 
     @Test
-    void addOrUpdate() {
-        Foyer foyer = new Foyer();
-        when(service.addOrUpdate(foyer)).thenReturn(foyer);
+    void addOrUpdate_ShouldReturnSavedBloc() {
+        when(blocService.addOrUpdate(any(Bloc.class))).thenReturn(sampleBloc);
 
-        Foyer result = controller.addOrUpdate(foyer);
+        Bloc result = blocRestController.addOrUpdate(sampleBloc);
 
         assertNotNull(result);
-        verify(service, times(1)).addOrUpdate(foyer);
+        assertEquals(sampleBloc, result);
+        verify(blocService, times(1)).addOrUpdate(sampleBloc);
     }
 
     @Test
-    void findAll() {
-        List<Foyer> foyers = Arrays.asList(new Foyer(), new Foyer());
-        when(service.findAll()).thenReturn(foyers);
+    void findAll_ShouldReturnAllBlocs() {
+        List<Bloc> blocs = Arrays.asList(sampleBloc, new Bloc());
+        when(blocService.findAll()).thenReturn(blocs);
 
-        List<Foyer> result = controller.findAll();
+        List<Bloc> result = blocRestController.findAll();
 
         assertEquals(2, result.size());
-        verify(service, times(1)).findAll();
+        verify(blocService, times(1)).findAll();
     }
 
     @Test
-    void findById() {
-        Foyer foyer = new Foyer();
-        when(service.findById(1L)).thenReturn(foyer);
+    void findAll_ShouldHandleEmptyList() {
+        when(blocService.findAll()).thenReturn(Collections.emptyList());
 
-        Foyer result = controller.findById(1L);
+        List<Bloc> result = blocRestController.findAll();
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void findById_ShouldReturnBlocWhenExists() {
+        when(blocService.findById(anyLong())).thenReturn(sampleBloc);
+
+        Bloc result = blocRestController.findById(1L);
 
         assertNotNull(result);
-        verify(service, times(1)).findById(1L);
+        assertEquals(sampleBloc, result);
+        verify(blocService, times(1)).findById(1L);
     }
 
     @Test
-    void delete() {
-        Foyer foyer = new Foyer();
-        doNothing().when(service).delete(foyer);
+    void findById_ShouldReturnNullWhenNotExists() {
+        when(blocService.findById(anyLong())).thenReturn(null);
 
-        controller.delete(foyer);
+        Bloc result = blocRestController.findById(99L);
 
-        verify(service, times(1)).delete(foyer);
+        assertNull(result);
     }
 
     @Test
-    void deleteById() {
-        doNothing().when(service).deleteById(1L);
+    void delete_ShouldCallService() {
+        doNothing().when(blocService).delete(any(Bloc.class));
 
-        controller.deleteById(1L);
+        blocRestController.delete(sampleBloc);
 
-        verify(service, times(1)).deleteById(1L);
+        verify(blocService, times(1)).delete(sampleBloc);
     }
 
     @Test
-    void affecterFoyerAUniversite() {
-        Universite universite = new Universite();
-        when(service.affecterFoyerAUniversite(1L, "TestUniversity")).thenReturn(universite);
+    void deleteById_ShouldCallService() {
+        doNothing().when(blocService).deleteById(anyLong());
 
-        Universite result = controller.affecterFoyerAUniversite(1L, "TestUniversity");
+        blocRestController.deleteById(1L);
+
+        verify(blocService, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void affecterChambresABloc_ShouldReturnBloc() {
+        List<Long> chambreIds = Arrays.asList(1L, 2L);
+        when(blocService.affecterChambresABloc(anyList(), anyString()))
+                .thenReturn(sampleBloc);
+
+        Bloc result = blocRestController.affecterChambresABloc(chambreIds, "Test Bloc");
 
         assertNotNull(result);
-        verify(service, times(1)).affecterFoyerAUniversite(1L, "TestUniversity");
+        assertEquals(sampleBloc, result);
+        verify(blocService, times(1)).affecterChambresABloc(chambreIds, "Test Bloc");
     }
 
     @Test
-    void desaffecterFoyerAUniversite() {
-        Universite universite = new Universite();
-        when(service.desaffecterFoyerAUniversite(1L)).thenReturn(universite);
+    void affecterChambresABloc_ShouldHandleEmptyList() {
+        when(blocService.affecterChambresABloc(anyList(), anyString()))
+                .thenReturn(sampleBloc);
 
-        Universite result = controller.desaffecterFoyerAUniversite(1L);
+        Bloc result = blocRestController.affecterChambresABloc(Collections.emptyList(), "Test Bloc");
 
         assertNotNull(result);
-        verify(service, times(1)).desaffecterFoyerAUniversite(1L);
     }
 
     @Test
-    void ajouterFoyerEtAffecterAUniversite() {
-        Foyer foyer = new Foyer();
-        when(service.ajouterFoyerEtAffecterAUniversite(foyer, 1L)).thenReturn(foyer);
+    void affecterBlocAFoyer_ShouldReturnBloc() {
+        when(blocService.affecterBlocAFoyer(anyString(), anyString()))
+                .thenReturn(sampleBloc);
 
-        Foyer result = controller.ajouterFoyerEtAffecterAUniversite(foyer, 1L);
+        Bloc result = blocRestController.affecterBlocAFoyer("Test Bloc", "Test Foyer");
 
         assertNotNull(result);
-        verify(service, times(1)).ajouterFoyerEtAffecterAUniversite(foyer, 1L);
+        assertEquals(sampleBloc, result);
+        verify(blocService, times(1)).affecterBlocAFoyer("Test Bloc", "Test Foyer");
+    }
+
+    @Test
+    void affecterBlocAFoyer_ShouldHandleEmptyNames() {
+        when(blocService.affecterBlocAFoyer(anyString(), anyString()))
+                .thenReturn(null);
+
+        Bloc result = blocRestController.affecterBlocAFoyer("", "");
+
+        assertNull(result);
     }
 }
