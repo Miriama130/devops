@@ -1,4 +1,4 @@
-package tn.esprit.spring.services.Chambre;
+package tn.esprit.spring.services.chambre;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

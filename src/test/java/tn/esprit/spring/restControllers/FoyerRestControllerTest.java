@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import tn.esprit.spring.dao.entities.Bloc;
-import tn.esprit.spring.services.Bloc.IBlocService;
+import tn.esprit.spring.services.bloc.IBlocService;
 
 import java.util.Arrays;
 import java.util.Collections;

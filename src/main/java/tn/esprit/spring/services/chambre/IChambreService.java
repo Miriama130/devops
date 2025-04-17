@@ -1,4 +1,4 @@
-package tn.esprit.spring.services.Chambre;
+package tn.esprit.spring.services.chambre;
 
 import tn.esprit.spring.dao.entities.Chambre;
 import tn.esprit.spring.dao.entities.TypeChambre;

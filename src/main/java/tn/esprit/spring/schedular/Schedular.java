@@ -4,8 +4,8 @@ package tn.esprit.spring.schedular;
 import lombok.AllArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import tn.esprit.spring.services.Chambre.IChambreService;
-import tn.esprit.spring.services.Reservation.IReservationService;
+import tn.esprit.spring.services.chambre.IChambreService;
+import tn.esprit.spring.services.reservation.IReservationService;
 
 @Component
 @AllArgsConstructor
