@@ -142,17 +142,6 @@ pipeline {
         }
         success {
             echo "✅ Build succeeded!"
-        }
-        failure {
-            echo "❌ Build failed!"
-        }
-    }
-
-
-
-
-    post {
-        success {
             emailext(
                 subject: "✅ Build Réussi: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: "Bonjour,<br><br>Le build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> a été exécuté avec succès.<br>Voir les détails ici : <a href='${env.BUILD_URL}'>Lien Jenkins</a>",
@@ -161,6 +150,7 @@ pipeline {
             )
         }
         failure {
+            echo "❌ Build failed!"
             emailext(
                 subject: "❌ Échec du Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: "Bonjour,<br><br>Le build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> a échoué.<br>Voir les logs ici : <a href='${env.BUILD_URL}'>Lien Jenkins</a>",
@@ -170,5 +160,3 @@ pipeline {
         }
     }
 }
-
-    
