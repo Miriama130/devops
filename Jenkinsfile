@@ -124,23 +124,24 @@ pipeline {
         //     }
 
         stage('Upload Artifact to Nexus') {
-            steps {
-                nexusArtifactUploader(
-                    nexusVersion: 'nexus3',
-                    protocol: 'http',
-                    nexusUrl: "${NEXUS_URL}",
-                    version: "${ARTIFACT_VERSION}",
-                    repository: "${NEXUS_REPO}",
-                    credentialsId: 'nex-cred',
-                    artifacts: [[
-                        artifactId: "${ARTIFACT_NAME}", // Utilise ARTIFACT_NAME ici, pas ARTIFACT_ID
-                        classifier: '',
-                        file: "target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar",
-                        type: 'jar'
-                    ]]
-                )
-            }
-        }
+    steps {
+        nexusArtifactUploader(
+            nexusVersion: 'nexus3',
+            protocol: 'http',
+            nexusUrl: "${NEXUS_URL}",
+            groupId: "tn.esprit.spring",  // Ajout du groupId
+            artifactId: "${ARTIFACT_NAME}",
+            version: "${ARTIFACT_VERSION}",
+            repository: "${NEXUS_REPO}",
+            credentialsId: 'nex-cred',
+            artifacts: [[
+                classifier: '',
+                file: "target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar",
+                type: 'jar'
+            ]]
+        )
+    }
+}
 
         stage('SonarQube Analysis') {
             steps {
