@@ -135,6 +135,37 @@ pipeline {
                 }
             }
         }
+stage('JaCoCo Report') {
+            steps {
+                echo 'Generating JaCoCo coverage report...'
+                
+                // Générer le rapport JaCoCo
+                sh 'mvn jacoco:report'
+
+                // Publier les résultats de tests JUnit
+                junit '**/target/surefire-reports/*.xml'
+                
+                // Publier le rapport JaCoCo dans Jenkins
+                jacoco(
+                    execPattern: '**/target/jacoco.exec',
+                    classPattern: '**/target/classes',
+                    sourcePattern: '**/src/main/java',
+                    exclusionPattern: '**/src/test/*',
+                    changeBuildStatus: true,
+                    skipCopyOfSrcFiles: false
+                )
+                
+                // Publier un rapport HTML JaCoCo
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: false,
+                    keepAll: true,
+                    reportDir: 'target/site/jacoco',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo Report'
+                ])
+            }
+        }
 
         stage('Send Email Notification') {
             steps {
