@@ -139,6 +139,27 @@ pipeline {
             }
         }
     }
+    stage('Send Email Notification') {
+    steps {
+        mail(
+            to: 'onsdachraoui87@gmail.com',
+            subject: "✅ Jenkins Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
+            body: """
+                Hello,
+
+                ✅ Jenkins Build #${env.BUILD_NUMBER} has completed with status: ${currentBuild.currentResult}.
+
+                🔗 Build Details: ${env.BUILD_URL}
+                🐳 Docker Image: ${DOCKER_IMAGE}
+                🎯 Artifact: ${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar
+                📦 Nexus URL: ${NEXUS_RELEASES_URL}${ARTIFACT_PATH}
+
+                Have a nice day!
+            """
+        )
+    }
+}
+
 
     post {
         always {
