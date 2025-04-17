@@ -78,18 +78,18 @@ pipeline {
             }
         }
 
-        // stage('Push Docker Image') {
-        //     steps {
-        //         script {
-        //             withCredentials([usernamePassword(credentialsId: 'DOCKER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-        //                 sh '''
-        //                 echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-        //                 docker push $DOCKER_IMAGE
-        //                 '''
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'DOCKER', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh '''
+                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                        docker push $DOCKER_IMAGE
+                        '''
+                    }
+                }
+            }
+        }
 
         stage('Run Tests with Spring Profile') {
             steps {
@@ -98,32 +98,8 @@ pipeline {
             }
         }
 
-        // stage('Download Artifact from Nexus') {
-        //     steps {
-        //         script {
-        //             withCredentials([usernamePassword(
-        //                 credentialsId: 'nex-cred',
-        //                 usernameVariable: 'NEXUS_USER',
-        //                 passwordVariable: 'NEXUS_PASS'
-        //             )]) {
-        //                 // Create target directory if it doesn't exist
-        //                 sh 'mkdir -p target'
-                        
-        //                 // Download the JAR from Nexus releases repository
-        //                 sh """
-        //                     curl -u ${NEXUS_USER}:${NEXUS_PASS} \
-        //                     -o target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar \
-        //                     "${NEXUS_RELEASES_URL}${ARTIFACT_PATH}"
-        //                 """
-                        
-        //                 // Verify the download
-        //                 sh 'ls -l target/'
-        //                 sh 'file target/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar'
-        //             }
-        //         }
-        //     }
 
-       stage('Upload Artifact to Nexus') {
+       stage('Download Artifact from Nexus') {
     steps {
         nexusArtifactUploader(
             nexusVersion: 'nexus3',
