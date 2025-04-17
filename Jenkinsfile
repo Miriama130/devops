@@ -9,6 +9,7 @@ pipeline {
         ARTIFACT_NAME = 'Foyer'    
         ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
         GROUP_PATH = "tn/esprit/spring"
+        NEXUS_URL = '172.18.64.72:8081'
       NEXUS_SNAPSHOTS_URL = "http://172.18.64.72:8081/repository/maven-snapshots"
         ARTIFACT_PATH = "${GROUP_PATH}/${ARTIFACT_NAME}/${ARTIFACT_VERSION}/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar"
     
