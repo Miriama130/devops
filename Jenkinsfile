@@ -6,7 +6,11 @@ pipeline {
         NEXUS_REPO = "maven-releases"  // Remplace par "maven-snapshots" si nécessaire
         // NEXUS_URL = 'http://172.18.64.72:8081/repository/maven-snapshots'
           NEXUS_RELEASES_URL = "http://172.18.64.72:8081/repository/maven-releases"
-          ARTIFACT_NAME = 'Foyer'    }
+          ARTIFACT_NAME = 'Foyer'    
+          ARTIFACT_VERSION = '0.0.1-SNAPSHOT'
+        ARTIFACT_PATH = "tn/esprit/spring/${ARTIFACT_NAME}/${ARTIFACT_VERSION}/${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar"
+    
+    }
 
     stages {
         stage('Clone Repository') {
