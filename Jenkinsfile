@@ -49,10 +49,12 @@ pipeline {
             }
         }
 
-       stage('Déploiement sur Nexus') {
+      stage('Déploiement sur Nexus') {
     steps {
-        echo 'Deploying to Nexus using custom settings.xml...'
-        sh 'mvn deploy -s ~/.m2/settings.xml'
+        script {
+            echo 'Deploying to Nexus using custom settings.xml...'
+            sh 'mvn deploy -s /etc/maven/settings.xml'
+        }
     }
 }
 
