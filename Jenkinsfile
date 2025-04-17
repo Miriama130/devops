@@ -13,19 +13,22 @@ pipeline {
 
     stages {
         stage('Clean Docker Environment') {
-            steps {
-                sh '''
-                    # Clean up application containers if they exist
-                    docker-compose -f docker-compose.yml down || true
-                    
-                    # Remove specific containers by name if they still exist
-                    docker rm -f spring-foyer mysql-container || true
-                    
-                    # Remove old images
-                    docker rmi -f ${DOCKER_IMAGE}:${DOCKER_TAG} || true
-                '''
-            }
-        }
+    steps {
+        sh '''
+            # Stop and remove all containers from the compose file
+            docker-compose -f docker-compose.yml down --remove-orphans --volumes || true
+            
+            # Remove specific containers by name if they still exist
+            docker rm -f spring-foyer mysql-container || true
+            
+            # Remove old images
+            docker rmi -f ${DOCKER_IMAGE}:${DOCKER_TAG} || true
+            
+            # Clean up any dangling resources
+            docker system prune -f
+        '''
+    }
+}
 
         stage('Checkout Code') {
             steps {
@@ -131,31 +134,34 @@ pipeline {
         }
 
         stage('Deploy Application') {
-            steps {
-                script {
-                    try {
-                        // Start containers with force recreation
-                        sh 'docker-compose -f docker-compose.yml up -d --force-recreate'
-                        
-                        // Wait for MySQL healthcheck
-                        sh '''
-                            timeout 180 bash -c 'while [[ "$(docker inspect -f \'{{.State.Health.Status}}\' mysql-container)" != "healthy" ]]; do 
-                                sleep 10; 
-                                echo "Waiting for MySQL to become healthy..."; 
-                                docker logs mysql-container || true
-                            done'
-                        '''
-                        
-                        // Check application
-                        sh 'curl -s --retry 5 --retry-delay 10 http://localhost:8082/Foyer/actuator/health'
-                    } catch (err) {
-                        echo "Deployment failed, showing logs:"
-                        sh 'docker-compose logs'
-                        error("Deployment failed: ${err}")
-                    }
-                }
+    steps {
+        script {
+            try {
+                // Ensure containers are down and removed first
+                sh 'docker-compose -f docker-compose.yml down --remove-orphans || true'
+                
+                // Start containers with force recreation
+                sh 'docker-compose -f docker-compose.yml up -d --force-recreate --remove-orphans'
+                
+                // Wait for MySQL healthcheck
+                sh '''
+                    timeout 180 bash -c 'while [[ "$(docker inspect -f \'{{.State.Health.Status}}\' mysql-container)" != "healthy" ]]; do 
+                        sleep 10; 
+                        echo "Waiting for MySQL to become healthy..."; 
+                        docker logs mysql-container || true
+                    done'
+                '''
+                
+                // Check application
+                sh 'curl -s --retry 5 --retry-delay 10 http://localhost:8082/Foyer/actuator/health'
+            } catch (err) {
+                echo "Deployment failed, showing logs:"
+                sh 'docker-compose logs'
+                error("Deployment failed: ${err}")
             }
         }
+    }
+}
     }
 
     post {
