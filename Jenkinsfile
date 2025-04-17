@@ -2,15 +2,14 @@ pipeline {
     agent any
 
     environment {
+        // Docker image configuration
         IMAGE_NAME = 'foyer-app'
         IMAGE_TAG = "latest-${BUILD_NUMBER}"
-        DOCKER_REGISTRY = '' // Add if pushing to a registry
-        CONTAINER_PORT = 8081
-        HOST_PORT = 8081
-    }
 
-    triggers {
-        pollSCM('H/5 * * * *')
+        // SonarQube configuration
+        SONAR_HOST_URL = 'http://172.17.102.63:9000'
+        SONAR_PROJECT_KEY = 'devops'
+        SONAR_PROJECT_NAME = 'devops'
     }
 
     stages {
@@ -31,17 +30,22 @@ pipeline {
             steps {
                 sh 'mvn clean package'
             }
+            post {
+                always {
+                    junit 'target/surefire-reports/**/*.xml'
+                }
+            }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('Sonar') {  // Changed to match your config
+                withSonarQubeEnv('Sonar') {
                     withCredentials([string(credentialsId: 'devopes', variable: 'SONAR_TOKEN')]) {
                         sh """
-                            mvn sonar:sonar \\
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
-                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \\
-                            -Dsonar.host.url=${SONAR_HOST_URL} \\
+                            mvn sonar:sonar \
+                            -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \
+                            -Dsonar.projectName=${env.SONAR_PROJECT_NAME} \
+                            -Dsonar.host.url=${env.SONAR_HOST_URL} \
                             -Dsonar.login=${SONAR_TOKEN}
                         """
                     }
@@ -50,27 +54,25 @@ pipeline {
         }
 
         stage('Build Docker Image') {
+            when {
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
             steps {
                 script {
-                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                    // If using a registry:
-                    // sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
-                    // withCredentials([...]) { sh "docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" }
+                    sh "docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
                 }
             }
         }
 
         stage('Deploy Locally') {
+            when {
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
             steps {
                 script {
                     sh "docker stop devops-app || true"
                     sh "docker rm devops-app || true"
-                    sh """
-                        docker run -d \
-                        -p ${HOST_PORT}:${CONTAINER_PORT} \
-                        --name devops-app \
-                        ${IMAGE_NAME}:${IMAGE_TAG}
-                    """
+                    sh "docker run -d -p 8081:8081 --name devops-app ${env.IMAGE_NAME}:${env.IMAGE_TAG}"
                 }
             }
         }
@@ -78,16 +80,7 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline completed - cleanup resources if needed'
-            // archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            // junit 'target/surefire-reports/**/*.xml'
-        }
-        success {
-            echo 'Pipeline succeeded!'
-        }
-        failure {
-            echo 'Pipeline failed!'
-            // mail to: 'team@example.com', subject: 'Pipeline Failed', body: '...'
+            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
         }
     }
 }
