@@ -33,7 +33,8 @@ pipeline {
                 sh 'mvn --version'
             }
         }
-           stage('Clean') {
+
+        stage('Clean') {
             steps {
                 sh 'mvn clean'
             }
@@ -133,13 +134,11 @@ pipeline {
                 )
             }
         }
-    }
 
-  
         stage('Send Email Notification') {
             steps {
                 mail(
-                    to: 'guzaineb@gmail.com',
+                    to: "${RECIPIENT}",
                     subject: "✅ Jenkins Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
                     body: """
                         Hello,
@@ -147,14 +146,14 @@ pipeline {
                         ✅ Jenkins Build #${env.BUILD_NUMBER} has completed with status: ${currentBuild.currentResult}.
 
                         🔗 Build Details: ${env.BUILD_URL}
-                        🐳 Docker Image: ${DOCKER_IMAGE}
-                        🎯 Artifact: ${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar
-                        📦 Nexus URL: ${NEXUS_RELEASES_URL}${ARTIFACT_PATH}
+                        🐳 Docker Image: ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                        🎯 Artifact: ${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar
+                        📦 Nexus URL: ${NEXUS_RELEASES_URL}/${ARTIFACT_PATH}
 
                         Have a nice day!
                     """
                 )
             }
         }
-    
+    }
 }
