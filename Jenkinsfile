@@ -135,27 +135,26 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            echo "Pipeline completed!"
-        }
-        success {
-            echo "✅ Build succeeded!"
-            emailext(
-                subject: "✅ Build Réussi: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: "Bonjour,<br><br>Le build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> a été exécuté avec succès.<br>Voir les détails ici : <a href='${env.BUILD_URL}'>Lien Jenkins</a>",
-                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
-                to: "${RECIPIENT}"
-            )
-        }
-        failure {
-            echo "❌ Build failed!"
-            emailext(
-                subject: "❌ Échec du Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: "Bonjour,<br><br>Le build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> a échoué.<br>Voir les logs ici : <a href='${env.BUILD_URL}'>Lien Jenkins</a>",
-                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
-                to: "${RECIPIENT}"
-            )
+  
+        stage('Send Email Notification') {
+            steps {
+                mail(
+                    to: 'guzaineb@gmail.com',
+                    subject: "✅ Jenkins Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
+                    body: """
+                        Hello,
+
+                        ✅ Jenkins Build #${env.BUILD_NUMBER} has completed with status: ${currentBuild.currentResult}.
+
+                        🔗 Build Details: ${env.BUILD_URL}
+                        🐳 Docker Image: ${DOCKER_IMAGE}
+                        🎯 Artifact: ${ARTIFACT_NAME}-${ARTIFACT_VERSION}.jar
+                        📦 Nexus URL: ${NEXUS_RELEASES_URL}${ARTIFACT_PATH}
+
+                        Have a nice day!
+                    """
+                )
+            }
         }
     }
 }
