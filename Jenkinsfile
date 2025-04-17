@@ -1,58 +1,93 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven 3.8.6'  // adjust to your configured Maven tool in Jenkins
-        jdk 'Java 17'        // match your project's Java version
+    environment {
+        IMAGE_NAME = 'foyer-app'
+        IMAGE_TAG = "latest-${BUILD_NUMBER}"
+        DOCKER_REGISTRY = '' // Add if pushing to a registry
+        CONTAINER_PORT = 8081
+        HOST_PORT = 8081
     }
 
-    environment {
-        SONARQUBE = 'SonarQubeServer' // name must match your SonarQube server in Jenkins config
+    triggers {
+        pollSCM('H/5 * * * *')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'adam', url: 'https://github.com/Miriama130/devops.git'
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/adam']],
+                    extensions: [],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/Miriama130/devops.git'
+                    ]]
+                ])
             }
         }
 
-        stage('Clean & Compile') {
+        stage('Build & Test') {
             steps {
-                sh 'mvn clean compile'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'mvn test'
+                sh 'mvn clean package'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv("${SONARQUBE}") {
-                    sh 'mvn sonar:sonar -Dsonar.projectKey=your-project-key -Dsonar.host.url=http://your-sonar-url -Dsonar.login=your-token'
+                withSonarQubeEnv('SonarQube') {
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        sh """
+                            mvn sonar:sonar \\
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
+                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \\
+                            -Dsonar.host.url=${SONAR_HOST_URL} \\
+                            -Dsonar.login=${SONAR_TOKEN}
+                        """
+                    }
                 }
             }
         }
 
-        stage('Build Application') {
+        stage('Build Docker Image') {
             steps {
-                sh 'mvn package'
+                script {
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                    // If using a registry:
+                    // sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+                    // withCredentials([...]) { sh "docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" }
+                }
+            }
+        }
+
+        stage('Deploy Locally') {
+            steps {
+                script {
+                    sh "docker stop devops-app || true"
+                    sh "docker rm devops-app || true"
+                    sh """
+                        docker run -d \
+                        -p ${HOST_PORT}:${CONTAINER_PORT} \
+                        --name devops-app \
+                        ${IMAGE_NAME}:${IMAGE_TAG}
+                    """
+                }
             }
         }
     }
 
     post {
         always {
-            echo 'Pipeline finished.'
+            echo 'Pipeline completed - cleanup resources if needed'
+            // archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            // junit 'target/surefire-reports/**/*.xml'
         }
         success {
-            echo 'Build completed successfully.'
+            echo 'Pipeline succeeded!'
         }
         failure {
-            echo 'Build failed.'
+            echo 'Pipeline failed!'
+            // mail to: 'team@example.com', subject: 'Pipeline Failed', body: '...'
         }
     }
 }
