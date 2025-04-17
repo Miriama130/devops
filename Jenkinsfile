@@ -50,18 +50,11 @@ pipeline {
         }
 
        stage('Déploiement sur Nexus') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'nex-cred', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                    sh '''
-                        mvn deploy \
-                        -DrepositoryId=nexus \
-                        -Durl=$NEXUS_RELEASES_URL \
-                        -Dusername=$NEXUS_USER \
-                        -Dpassword=$NEXUS_PASS
-                    '''
-                }
-            }
-        }
+    steps {
+        echo 'Deploying to Nexus using custom settings.xml...'
+        sh 'mvn deploy -s ~/.m2/settings.xml'
+    }
+}
 
         stage('Verify Dockerfile') {
             steps {
