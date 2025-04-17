@@ -1,93 +1,58 @@
 pipeline {
     agent any
 
-    environment {
-        // Docker image configuration for local Docker Desktop
-        IMAGE_NAME = 'foyer-app'
-        IMAGE_TAG = "latest"
-
-        // SonarQube configuration
-        SONAR_HOST_URL = 'http://172.17.102.63:9000'
-        SONAR_PROJECT_KEY = 'devops'
-        SONAR_PROJECT_NAME = 'devops'
+    tools {
+        maven 'Maven 3.8.6'  // adjust to your configured Maven tool in Jenkins
+        jdk 'Java 17'        // match your project's Java version
     }
 
-    triggers {
-        pollSCM('H/5 * * * *')
+    environment {
+        SONARQUBE = 'SonarQubeServer' // name must match your SonarQube server in Jenkins config
     }
 
     stages {
         stage('Checkout') {
             steps {
-                script {
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: '*/adam']],
-                        extensions: [],
-                        userRemoteConfigs: [[
-                            url: 'https://github.com/Miriama130/devops.git'
-                        ]]
-                    ])
-                }
+                git branch: 'adam', url: 'https://github.com/Miriama130/devops.git'
             }
         }
 
-        stage('Clean') {
+        stage('Clean & Compile') {
             steps {
-                sh 'mvn clean'
+                sh 'mvn clean compile'
             }
         }
 
-        stage('Compile') {
+        stage('Test') {
             steps {
-                sh 'mvn compile'
+                sh 'mvn test'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                        sh """
-                            mvn clean verify sonar:sonar \\
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
-                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \\
-                            -Dsonar.host.url=${SONAR_HOST_URL} \\
-                            -Dsonar.login=${SONAR_TOKEN}
-                        """
-                    }
+                withSonarQubeEnv("${SONARQUBE}") {
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=your-project-key -Dsonar.host.url=http://your-sonar-url -Dsonar.login=your-token'
                 }
             }
         }
 
         stage('Build Application') {
             steps {
-                sh 'mvn package -DskipTests'
+                sh 'mvn package'
             }
         }
+    }
 
-        stage('Run Tests') {
-            steps {
-                sh 'mvn test'
-            }
+    post {
+        always {
+            echo 'Pipeline finished.'
         }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                }
-            }
+        success {
+            echo 'Build completed successfully.'
         }
-
-        stage('Deploy Locally') {
-            steps {
-                script {
-                    sh "docker stop devops-app || true"
-                    sh "docker rm devops-app || true"
-                    sh "docker run -d -p 8081:8081 --name devops-app ${IMAGE_NAME}:${IMAGE_TAG}"
-                }
-            }
+        failure {
+            echo 'Build failed.'
         }
     }
 }
