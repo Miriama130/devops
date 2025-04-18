@@ -65,10 +65,12 @@ pipeline {
 
     post {
         always {
-            script {
-                sh "docker stop ${env.CONTAINER_NAME} || true"
-                sh "docker rm ${env.CONTAINER_NAME} || true"
-                sh "docker rmi ${env.IMAGE_NAME} || true"
+            node('') {  // You can specify a label here if needed, or leave empty for any agent
+                script {
+                    sh "docker stop ${env.CONTAINER_NAME} || true"
+                    sh "docker rm ${env.CONTAINER_NAME} || true"
+                    sh "docker rmi ${env.IMAGE_NAME} || true"
+                }
             }
         }
     }
