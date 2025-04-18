@@ -150,12 +150,12 @@ stage('Code Coverage Report (JaCoCo)') {
                     body: """
                         Hello,
 
-                        ✅ Jenkins Build #${env.BUILD_NUMBER} has completed with status: ${currentBuild.currentResult}.
+                
 
                         🔗 Build Details: ${env.BUILD_URL}
                         🐳 Docker Image: ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
                         🎯 Artifact: ${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar
-                        📦 Nexus URL: ${NEXUS_RELEASES_URL}/${ARTIFACT_PATH}
+                        
 
                         Have a nice day!
                     """
