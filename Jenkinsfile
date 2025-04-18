@@ -7,8 +7,8 @@ pipeline {
         CONTAINER_PORT = 8081
         HOST_PORT = 8081
         SONAR_HOST_URL = 'http://172.17.102.63:9000'
-        SONAR_PROJECT_KEY = 'devops'
-        SONAR_PROJECT_NAME = 'devops'
+        SONAR_PROJECT_KEY = 'devopes'
+        SONAR_PROJECT_NAME = 'devopes'
     }
 
     stages {
