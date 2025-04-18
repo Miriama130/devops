@@ -20,10 +20,7 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                // Run tests with coverage collection
                 sh 'mvn clean verify'
-
-                // Verify coverage files exist
                 sh 'ls -la target/'
                 sh 'ls -la target/site/jacoco/ || echo "Jacoco report not found"'
             }
@@ -38,11 +35,19 @@ pipeline {
 
         stage('Verify Coverage') {
             steps {
-                // Generate the report explicitly
                 sh 'mvn jacoco:report'
-
-                // Print coverage summary
                 sh 'cat target/site/jacoco/jacoco.xml | grep -A 5 "<counter type=\\"LINE\\"" || echo "No coverage data found"'
+            }
+        }
+
+        stage('Build Docker Image') {
+            when {
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
+            steps {
+                script {
+                    sh "docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
+                }
             }
         }
 
@@ -61,17 +66,6 @@ pipeline {
                             -Dsonar.jacoco.reportPaths=target/jacoco.exec
                         """
                     }
-                }
-            }
-        }
-
-        stage('Build Docker Image') {
-            when {
-                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
-            }
-            steps {
-                script {
-                    sh "docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
                 }
             }
         }
