@@ -18,23 +18,35 @@ pipeline {
             }
         }
 
-        stage('Build & Test') {
-            steps {
-                // Run tests with coverage collection
-                sh 'mvn clean verify'
+       stage('Build & Test') {
+           steps {
+               // Clean, build, run tests with coverage collection
+               sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent package'
 
-                // Verify coverage files exist
-                sh 'ls -la target/'
-                sh 'ls -la target/site/jacoco/ || echo "Jacoco report not found"'
-            }
+               // Generate the coverage report
+               sh 'mvn jacoco:report'
 
-            post {
-                always {
-                    junit 'target/surefire-reports/**/*.xml'
-                    archiveArtifacts artifacts: 'target/site/jacoco/jacoco.xml', fingerprint: true
-                }
-            }
-        }
+               // Verify test results and coverage files exist
+               sh '''
+                   echo "Test results:"
+                   ls -la target/surefire-reports/ || echo "No test reports found"
+                   echo "Coverage reports:"
+                   ls -la target/site/jacoco/ || echo "No coverage reports found"
+               '''
+           }
+           post {
+               always {
+                   // Archive JUnit test results
+                   junit 'target/surefire-reports/**/*.xml'
+
+                   // Archive JaCoCo coverage report
+                   archiveArtifacts artifacts: 'target/site/jacoco/jacoco.xml', fingerprint: true
+
+                   // Optional: Archive HTML coverage report for easier viewing
+                   archiveArtifacts artifacts: 'target/site/jacoco/index.html', fingerprint: true
+               }
+           }
+       }
 
         stage('Verify Coverage') {
             steps {
