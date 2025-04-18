@@ -114,7 +114,7 @@ pipeline {
                 '''
             }
         }
-    }
+    
 
         stage('Upload Artifact to Nexus') {
             steps {
