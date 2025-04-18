@@ -48,8 +48,8 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('devo') {
-                    withCredentials([string(credentialsId: 'devo', variable: 'SONAR_TOKEN')]) {
+                withSonarQubeEnv('Sonar') {
+                    withCredentials([string(credentialsId: 'devopes', variable: 'SONAR_TOKEN')]) {
                         sh """
                             mvn sonar:sonar \\
                             -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \\
