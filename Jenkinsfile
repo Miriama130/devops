@@ -6,7 +6,7 @@ pipeline {
         BRANCH = 'mahmoud'
         IMAGE_NAME = 'foyer-spring-app'
         CONTAINER_NAME = 'foyer'
-        SONAR_PROJECT_KEY = 'your-sonar-project-key' // replace
+        SONAR_PROJECT_KEY = 'devops-mahmoud'
         SONAR_HOST_URL = 'http://172.19.114.235:9000' //Sonarqube server URL
         GIT_CREDENTIALS = credentials('mahmoud-d') // make sure this ID exists
         SONAR_TOKEN = credentials('sonarqube-token') // make sure this ID exists
