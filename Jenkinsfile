@@ -4,8 +4,8 @@ pipeline {
     environment {
         REPO_URL = 'https://github.com/Miriama130/devops.git'
         BRANCH = 'mahmoud'
-        IMAGE_NAME = 'foyer-spring-app'
-        CONTAINER_NAME = 'foyer'
+        IMAGE_NAME = 'latest'
+        CONTAINER_NAME = 'latest'
         SONAR_PROJECT_KEY = 'devops-mahmoud'
         SONAR_HOST_URL = 'http://172.19.114.235:9000' //Sonarqube server URL
         GIT_CREDENTIALS = credentials('mahmoud-d') // make sure this ID exists
