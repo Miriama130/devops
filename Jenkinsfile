@@ -52,6 +52,12 @@ pipeline {
             }
         }
 
+stage('Code Coverage Report (JaCoCo)') {
+    steps {
+        sh 'mvn jacoco:report'
+    }
+}
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
