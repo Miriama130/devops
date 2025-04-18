@@ -65,7 +65,7 @@ pipeline {
 
     post {
         always {
-            node {
+            script {
                 sh "docker stop ${env.CONTAINER_NAME} || true"
                 sh "docker rm ${env.CONTAINER_NAME} || true"
                 sh "docker rmi ${env.IMAGE_NAME} || true"
