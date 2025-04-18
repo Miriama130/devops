@@ -10,68 +10,97 @@ pipeline {
         SONAR_HOST_URL = 'http://172.19.114.235:9000'
         GIT_CREDENTIALS = credentials('mahmoud-d')
         SONAR_TOKEN = credentials('sonar-mahmoud')
+        SONAR_PROJECT_NAME = 'devops-mahmoud'
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                checkout([$class: 'GitSCM',
-                    branches: [[name: "${env.BRANCH}"]],
-                    userRemoteConfigs: [[
-                        url: "${env.REPO_URL}",
-                        credentialsId: "${env.GIT_CREDENTIALS}"
-                    ]]
-                ])
+                checkout scm
             }
         }
 
-        /*stage('Build Docker Image') {
+        stage('Build & Test') {
             steps {
-                script {
-                    sh "docker build -t ${env.IMAGE_NAME} ."
+                sh 'mvn clean verify'
+                sh 'ls -la target/'
+                sh 'ls -la target/site/jacoco/ || echo "Jacoco report not found"'
+            }
+
+            post {
+                always {
+                    junit 'target/surefire-reports/**/*.xml'
+                    archiveArtifacts artifacts: 'target/site/jacoco/jacoco.xml', fingerprint: true
                 }
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Verify Coverage') {
             steps {
-                script {
-                    sh "docker run -d --name ${env.CONTAINER_NAME} ${env.IMAGE_NAME}"
-                }
+                sh 'mvn jacoco:report'
+                sh 'cat target/site/jacoco/jacoco.xml | grep -A 5 "<counter type=\\"LINE\\"" || echo "No coverage data found"'
             }
-        }*/
+        }
 
-        stage('Run Unit Tests') {
+        stage('Build Docker Image') {
+            when {
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
             steps {
                 script {
-                    sh "docker exec ${env.CONTAINER_NAME} mvn test"
+                    sh "docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
                 }
             }
         }
 
-        /*stage('SonarQube Analysis') {
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('Sonar') {
+                    withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                        sh """
+                            mvn sonar:sonar \\
+                            -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \\
+                            -Dsonar.projectName=${env.SONAR_PROJECT_NAME} \\
+                            -Dsonar.host.url=${env.SONAR_HOST_URL} \\
+                            -Dsonar.login=${SONAR_TOKEN} \\
+                            -Dsonar.java.binaries=target/classes \\
+                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \\
+                            -Dsonar.jacoco.reportPaths=target/jacoco.exec
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy Locally') {
+            when {
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
             steps {
                 script {
+                    sh "docker stop devops-app || true"
+                    sh "docker rm devops-app || true"
                     sh """
-                        docker exec ${env.CONTAINER_NAME} mvn sonar:sonar \
-                        -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \
-                        -Dsonar.host.url=${env.SONAR_HOST_URL} \
-                        -Dsonar.login=${env.SONAR_TOKEN}
+                        docker run -d \
+                        -p ${env.HOST_PORT}:${env.CONTAINER_PORT} \
+                        --name devops-app \
+                        ${env.IMAGE_NAME}:${env.IMAGE_TAG}
                     """
                 }
             }
         }
-    }*/
+    }
 
     post {
         always {
-            node('') {  // You can specify a label here if needed, or leave empty for any agent
-                script {
-                    sh "docker stop ${env.CONTAINER_NAME} || true"
-                    sh "docker rm ${env.CONTAINER_NAME} || true"
-                    sh "docker rmi ${env.IMAGE_NAME} || true"
-                }
-            }
+            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            echo 'Pipeline completed - cleanup resources if needed'
+        }
+        success {
+            echo 'Pipeline succeeded!'
+        }
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
