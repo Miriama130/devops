@@ -114,24 +114,7 @@ pipeline {
                 '''
             }
         }
-        stage('Deploy with Docker Compose') {
-    steps {
-        withCredentials([
-            usernamePassword(
-                credentialsId: 'DockerHub-Creds',
-                usernameVariable: 'DOCKER_USER',
-                passwordVariable: 'DOCKER_PASSWORD'
-            )
-        ]) {
-            sh '''
-                docker-compose down
-                docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-                docker-compose pull
-                docker-compose up -d --build springapp
-            '''
-        }
     }
-}
 
         stage('Upload Artifact to Nexus') {
             steps {
