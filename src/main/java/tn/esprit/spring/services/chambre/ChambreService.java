@@ -1,5 +1,6 @@
 package tn.esprit.spring.services.chambre;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,8 @@ public class ChambreService implements IChambreService {
 
     @Override
     public Chambre findById(long id) {
-        return repo.findById(id).get();
+        return repo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Entity not found with ID: " + id));
     }
 
     @Override

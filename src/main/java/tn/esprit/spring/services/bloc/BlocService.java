@@ -1,5 +1,6 @@
 package tn.esprit.spring.services.bloc;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.spring.dao.entities.Bloc;
@@ -48,7 +49,8 @@ public class BlocService implements IBlocService {
 
     @Override
     public Bloc findById(long id) {
-        return repo.findById(id).get();
+        return repo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Entity not found with ID: " + id));
     }
 
     @Override
