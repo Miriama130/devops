@@ -11,12 +11,17 @@ pipeline {
         GIT_CREDENTIALS = credentials('mahmoud-d')
         SONAR_TOKEN = credentials('sonar-mahmoud')
         SONAR_PROJECT_NAME = 'devops-mahmoud'
+        IMAGE_TAG = "${env.BUILD_ID}"  // Added missing variable
+        HOST_PORT = "8080"             // Added missing variable
+        CONTAINER_PORT = "8080"        // Added missing variable
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                checkout([$class: 'GitSCM',
+                         branches: [[name: env.BRANCH]],
+                         userRemoteConfigs: [[url: env.REPO_URL, credentialsId: env.GIT_CREDENTIALS]]])
             }
         }
 
@@ -42,6 +47,23 @@ pipeline {
             }
         }
 
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('Sonar') {
+                    sh """
+                        mvn sonar:sonar \
+                        -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \
+                        -Dsonar.projectName=${env.SONAR_PROJECT_NAME} \
+                        -Dsonar.host.url=${env.SONAR_HOST_URL} \
+                        -Dsonar.login=${env.SONAR_TOKEN} \
+                        -Dsonar.java.binaries=target/classes \
+                        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                        -Dsonar.jacoco.reportPaths=target/jacoco.exec
+                    """
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             when {
                 expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
@@ -53,37 +75,18 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('Sonar') {
-                    withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-                        sh """
-                            mvn sonar:sonar \\
-                            -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \\
-                            -Dsonar.projectName=${env.SONAR_PROJECT_NAME} \\
-                            -Dsonar.host.url=${env.SONAR_HOST_URL} \\
-                            -Dsonar.login=${SONAR_TOKEN} \\
-                            -Dsonar.java.binaries=target/classes \\
-                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \\
-                            -Dsonar.jacoco.reportPaths=target/jacoco.exec
-                        """
-                    }
-                }
-            }
-        }
-
         stage('Deploy Locally') {
             when {
                 expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
             }
             steps {
                 script {
-                    sh "docker stop devops-app || true"
-                    sh "docker rm devops-app || true"
+                    sh "docker stop ${env.CONTAINER_NAME} || true"
+                    sh "docker rm ${env.CONTAINER_NAME} || true"
                     sh """
                         docker run -d \
                         -p ${env.HOST_PORT}:${env.CONTAINER_PORT} \
-                        --name devops-app \
+                        --name ${env.CONTAINER_NAME} \
                         ${env.IMAGE_NAME}:${env.IMAGE_TAG}
                     """
                 }
@@ -93,7 +96,9 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            script {
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
             echo 'Pipeline completed - cleanup resources if needed'
         }
         success {
