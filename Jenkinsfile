@@ -9,7 +9,7 @@ pipeline {
         SONAR_PROJECT_KEY = 'devops-mahmoud'
         SONAR_HOST_URL = 'http://172.19.114.235:9000'
         GIT_CREDENTIALS = credentials('mahmoud-d') // must match your Jenkins credentials ID
-        SONAR_TOKEN = credentials('sonarqube-token') // must match your Jenkins credentials ID
+        SONAR_TOKEN = credentials('sonar-mahmoud') // must match your Jenkins credentials ID
     }
 
     stages {
