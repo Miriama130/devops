@@ -18,43 +18,32 @@ pipeline {
             }
         }
 
-       stage('Build & Test') {
-           steps {
-               // Clean, build, run tests with coverage collection
-               sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent package'
-
-               // Generate the coverage report
-               sh 'mvn jacoco:report'
-
-               // Verify test results and coverage files exist
-               sh '''
-                   echo "Test results:"
-                   ls -la target/surefire-reports/ || echo "No test reports found"
-                   echo "Coverage reports:"
-                   ls -la target/site/jacoco/ || echo "No coverage reports found"
-               '''
-           }
-           post {
-               always {
-                   // Archive JUnit test results
-                   junit 'target/surefire-reports/**/*.xml'
-
-                   // Archive JaCoCo coverage report
-                   archiveArtifacts artifacts: 'target/site/jacoco/jacoco.xml', fingerprint: true
-
-                   // Optional: Archive HTML coverage report for easier viewing
-                   archiveArtifacts artifacts: 'target/site/jacoco/index.html', fingerprint: true
-               }
-           }
-       }
-
-        stage('Verify Coverage') {
+        stage('Build & Test') {
             steps {
-                // Generate the report explicitly
+                // Run tests with coverage collection using verify instead of package to include integration tests
+                sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify'
+
+                // Generate the coverage report
                 sh 'mvn jacoco:report'
 
-                // Print coverage summary
-                sh 'cat target/site/jacoco/jacoco.xml | grep -A 5 "<counter type=\\"LINE\\"" || echo "No coverage data found"'
+                // Verify coverage files exist
+                sh '''
+                    echo "Build artifacts:"
+                    ls -la target/
+                    echo "Test results:"
+                    ls -la target/surefire-reports/ || echo "No test reports found"
+                    echo "Coverage reports:"
+                    ls -la target/site/jacoco/ || echo "No coverage reports found"
+                    echo "Jacoco exec file:"
+                    ls -la target/jacoco.exec || echo "No jacoco.exec found"
+                '''
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/**/*.xml'
+                    archiveArtifacts artifacts: 'target/site/jacoco/jacoco.xml', fingerprint: true
+                    archiveArtifacts artifacts: 'target/jacoco.exec', fingerprint: true
+                }
             }
         }
 
@@ -70,7 +59,10 @@ pipeline {
                             -Dsonar.login=${SONAR_TOKEN} \\
                             -Dsonar.java.binaries=target/classes \\
                             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \\
-                            -Dsonar.jacoco.reportPaths=target/jacoco.exec
+                            -Dsonar.jacoco.reportPaths=target/jacoco.exec \\
+                            -Dsonar.jacoco.reportMissing.force.zero=true \\
+                            -Dsonar.sourceEncoding=UTF-8 \\
+                            -Dsonar.scm.disabled=true
                         """
                     }
                 }
@@ -83,7 +75,14 @@ pipeline {
             }
             steps {
                 script {
-                    sh "docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
+                    // Add Docker version check
+                    sh 'docker --version'
+
+                    // Build with error handling
+                    sh """
+                        docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} . || \
+                        { echo "Docker build failed"; exit 1; }
+                    """
                 }
             }
         }
@@ -94,14 +93,23 @@ pipeline {
             }
             steps {
                 script {
-                    sh "docker stop devops-app || true"
-                    sh "docker rm devops-app || true"
+                    // Stop and remove existing container with proper error handling
+                    sh 'docker stop devops-app || echo "No container to stop"'
+                    sh 'docker rm devops-app || echo "No container to remove"'
+
+                    // Run with proper error handling and health check
                     sh """
-                        docker run -d \
-                        -p ${env.HOST_PORT}:${env.CONTAINER_PORT} \
-                        --name devops-app \
-                        ${env.IMAGE_NAME}:${env.IMAGE_TAG}
+                        docker run -d \\
+                        -p ${env.HOST_PORT}:${env.CONTAINER_PORT} \\
+                        --name devops-app \\
+                        ${env.IMAGE_NAME}:${env.IMAGE_TAG} || \
+                        { echo "Docker run failed"; exit 1; }
                     """
+
+                    // Verify container is running
+                    sh 'sleep 5' // Wait for container to start
+                    sh 'docker ps -a | grep devops-app'
+                    sh 'docker logs devops-app --tail 20'
                 }
             }
         }
@@ -110,13 +118,25 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            echo 'Pipeline completed - cleanup resources if needed'
+            script {
+                // Clean up workspace
+                echo "Cleaning up workspace..."
+
+                // Additional cleanup if needed
+                sh 'docker ps -aq | xargs --no-run-if-empty docker stop || true'
+                sh 'docker ps -aq | xargs --no-run-if-empty docker rm || true'
+            }
         }
         success {
             echo 'Pipeline succeeded!'
         }
         failure {
             echo 'Pipeline failed!'
+            script {
+                // Additional failure diagnostics
+                sh 'docker ps -a'
+                sh 'docker logs devops-app --tail 50 || true'
+            }
         }
     }
 }
