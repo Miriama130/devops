@@ -1,6 +1,7 @@
 package tn.esprit.spring.services.foyer;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.spring.dao.entities.*;
@@ -18,7 +19,10 @@ public class FoyerService implements IFoyerService {
     BlocRepository blocRepository;
 
     @Override
+    @Transactional
     public Foyer addOrUpdate(Foyer f) {
+        //check if the methode worked
+        System.out.println("FoyerService.addOrUpdate");
         return repo.save(f);
     }
 
