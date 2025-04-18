@@ -25,7 +25,7 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        /*stage('Build Docker Image') {
             steps {
                 script {
                     sh "docker build -t ${env.IMAGE_NAME} ."
@@ -39,7 +39,7 @@ pipeline {
                     sh "docker run -d --name ${env.CONTAINER_NAME} ${env.IMAGE_NAME}"
                 }
             }
-        }
+        }*/
 
         stage('Run Unit Tests') {
             steps {
