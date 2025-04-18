@@ -7,20 +7,20 @@ pipeline {
         IMAGE_NAME = 'latest'
         CONTAINER_NAME = 'latest'
         SONAR_PROJECT_KEY = 'devops-mahmoud'
-        SONAR_HOST_URL = 'http://172.19.114.235:9000' //Sonarqube server URL
-        GIT_CREDENTIALS = credentials('mahmoud-d') // make sure this ID exists
-        SONAR_TOKEN = credentials('sonarqube-token') // make sure this ID exists
+        SONAR_HOST_URL = 'http://172.19.114.235:9000'
+        GIT_CREDENTIALS = credentials('mahmoud-d') // must match your Jenkins credentials ID
+        SONAR_TOKEN = credentials('sonarqube-token') // must match your Jenkins credentials ID
     }
 
     stages {
         stage('Clone Repository') {
             steps {
                 checkout([$class: 'GitSCM',
-                          branches: [[name: "${BRANCH}"]],
-                          userRemoteConfigs: [[
-                              url: "${REPO_URL}",
-                              credentialsId: "${GIT_CREDENTIALS}"
-                          ]]
+                    branches: [[name: "${env.BRANCH}"]],
+                    userRemoteConfigs: [[
+                        url: "${env.REPO_URL}",
+                        credentialsId: "${env.GIT_CREDENTIALS}"
+                    ]]
                 ])
             }
         }
@@ -28,7 +28,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${IMAGE_NAME} ."
+                    sh "docker build -t ${env.IMAGE_NAME} ."
                 }
             }
         }
@@ -36,7 +36,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME}"
+                    sh "docker run -d --name ${env.CONTAINER_NAME} ${env.IMAGE_NAME}"
                 }
             }
         }
@@ -44,7 +44,7 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 script {
-                    sh "docker exec ${CONTAINER_NAME} mvn test"
+                    sh "docker exec ${env.CONTAINER_NAME} mvn test"
                 }
             }
         }
@@ -52,13 +52,11 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Inject token safely into container (you can also mount a volume or use docker env flags)
                     sh """
-                        docker exec ${CONTAINER_NAME} \
-                        mvn sonar:sonar \
-                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                        -Dsonar.host.url=${SONAR_HOST_URL} \
-                        -Dsonar.login=${SONAR_TOKEN}
+                        docker exec ${env.CONTAINER_NAME} mvn sonar:sonar \
+                        -Dsonar.projectKey=${env.SONAR_PROJECT_KEY} \
+                        -Dsonar.host.url=${env.SONAR_HOST_URL} \
+                        -Dsonar.login=${env.SONAR_TOKEN}
                     """
                 }
             }
@@ -68,9 +66,9 @@ pipeline {
     post {
         always {
             script {
-                sh "docker stop ${CONTAINER_NAME} || true"
-                sh "docker rm ${CONTAINER_NAME} || true"
-                sh "docker rmi ${IMAGE_NAME} || true"
+                sh "docker stop ${env.CONTAINER_NAME} || true"
+                sh "docker rm ${env.CONTAINER_NAME} || true"
+                sh "docker rmi ${env.IMAGE_NAME} || true"
             }
         }
     }
