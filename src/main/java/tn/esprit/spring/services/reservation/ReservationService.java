@@ -1,5 +1,6 @@
 package tn.esprit.spring.services.reservation;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,8 @@ public class ReservationService implements IReservationService {
 
     @Override
     public Reservation findById(String id) {
-        return repo.findById(id).get();
+        return repo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Entity not found with ID: " + id));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package tn.esprit.spring.services.foyer;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.spring.dao.entities.*;
@@ -28,7 +29,8 @@ public class FoyerService implements IFoyerService {
 
     @Override
     public Foyer findById(long id) {
-        return repo.findById(id).get();
+        return repo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Entity not found with ID: " + id));
     }
 
     @Override

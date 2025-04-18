@@ -1,5 +1,6 @@
 package tn.esprit.spring.services.universite;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.spring.dao.entities.Universite;
@@ -24,7 +25,8 @@ public class UniversiteService implements IUniversiteService {
 
     @Override
     public Universite findById(long id) {
-        return repo.findById(id).get();
+        return repo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Entity not found with ID: " + id));
     }
 
     @Override
